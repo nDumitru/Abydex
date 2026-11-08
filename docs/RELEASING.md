@@ -23,10 +23,11 @@
    Scriptul schimbă versiunea în `forja3d/__init__.py` și mută notele în secțiunea `[0.2.0]`.
 3. ```bash
    git commit -am "Release v0.2.0"
-   git tag v0.2.0
-   git push origin main --tags
+   git push origin main
    ```
-4. GitHub Actions rulează testele, construiește `Forja3D-Setup-0.2.0.exe`, pachetul Linux și wheel-ul, apoi publică release-ul cu notele din CHANGELOG. Dacă tag-ul nu se potrivește cu versiunea din cod, release-ul e oprit.
+4. GitHub Actions rulează testele și construiește `Forja3D-Setup-0.2.0.exe`, pachetul Linux și wheel-ul. Văzând că `v0.2.0` nu există încă, creează **automat** tag-ul și release-ul, cu notele din CHANGELOG. Push-urile pe `main` fără schimbare de versiune doar testează și construiesc.
+
+   Funcționează și varianta clasică, cu tag pus manual (`git tag v0.2.0 && git push origin v0.2.0`). Dacă tag-ul nu se potrivește cu versiunea din cod, release-ul e oprit.
 
 ## Ce se păstrează la update (important!)
 Datele utilizatorului stau **separat** de aplicație (`forja3d info`):

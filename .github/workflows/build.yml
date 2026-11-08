@@ -73,27 +73,41 @@ jobs:
             dist/*.whl
             dist/*.tar.gz
 
+  # Publishes a release when:
+  #  - a tag vX.Y.Z is pushed, or
+  #  - main is pushed with a version (forja3d/__init__.py) that has no release yet
+  #    -> the tag is created automatically, no manual tagging needed.
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
     needs: [windows-installer, linux-package]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check tag matches version and extract release notes
+      - name: Version, release notes, skip if already released
         id: meta
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
           VER=$(python3 -c "import forja3d; print(forja3d.__version__)")
-          if [ "$TAG" != "$VER" ]; then echo "Tag v$TAG != __version__ $VER"; exit 1; fi
-          python3 scripts/release.py --notes "$TAG" > notes.md
-          case "$TAG" in *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT";; *) echo "prerelease=false" >> "$GITHUB_OUTPUT";; esac
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME#v}" != "$VER" ]; then
+            echo "Tag ${GITHUB_REF_NAME} != __version__ $VER"; exit 1
+          fi
+          if [ "${GITHUB_REF_TYPE}" = "branch" ] && git ls-remote --exit-code --tags origin "refs/tags/v$VER" >/dev/null; then
+            echo "v$VER is already released - nothing to do"; echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          python3 scripts/release.py --notes "$VER" > notes.md
+          case "$VER" in *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT";; *) echo "prerelease=false" >> "$GITHUB_OUTPUT";; esac
       - uses: actions/download-artifact@v4
+        if: steps.meta.outputs.skip == 'false'
         with:
           path: artifacts
           merge-multiple: true
       - uses: softprops/action-gh-release@v2
+        if: steps.meta.outputs.skip == 'false'
         with:
-          name: Forja3D ${{ github.ref_name }}
+          tag_name: v${{ steps.meta.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: Forja3D v${{ steps.meta.outputs.version }}
           body_path: notes.md
           prerelease: ${{ steps.meta.outputs.prerelease }}
           files: artifacts/*

@@ -49,8 +49,7 @@ def bump(new: str) -> None:
     INIT.write_text(INIT.read_text(encoding="utf-8").replace(f'"{old}"', f'"{new}"'), encoding="utf-8")
     print(f"Versiune: {old} -> {new}. Verifica modificarile, apoi:\n")
     print(f'  git commit -am "Release v{new}"')
-    print(f"  git tag v{new}")
-    print("  git push origin main --tags")
+    print("  git push origin main        # GitHub creeaza automat tag-ul si release-ul")
 
 
 if __name__ == "__main__":
