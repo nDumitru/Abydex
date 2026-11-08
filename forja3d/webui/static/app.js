@@ -80,6 +80,13 @@ async function init() {
   if (saved.nozzle) $("#nozzle").value = saved.nozzle;
   for (const id of ["material", "layer", "nozzle"]) $("#" + id).onchange = persist;
   renderEngines();
+  api("/api/update").then((u) => {
+    if (!u.update_available) return;
+    const a = $("#update");
+    a.hidden = false; a.href = u.url;
+    a.textContent = `Versiune nouă: ${u.latest} ↗`;
+    a.title = u.notes || "";
+  }).catch(() => {});
 }
 const tech = () => CAT.printers[$("#printer").value].technology;
 function fillMaterials() {

@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 import math
+import shutil
 import sqlite3
 import time
 from pathlib import Path
 
 from .catalog import user_dir
+from .mesh_tools import FEATURES_VERSION
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS projects (
@@ -20,7 +22,8 @@ CREATE TABLE IF NOT EXISTS projects (
     dims_json TEXT,
     features_json TEXT,
     analysis_json TEXT,
-    created REAL NOT NULL
+    created REAL NOT NULL,
+    features_version INTEGER DEFAULT 1
 );
 CREATE TABLE IF NOT EXISTS jobs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,33 +43,58 @@ CREATE TABLE IF NOT EXISTS jobs (
 CREATE INDEX IF NOT EXISTS jobs_pm ON jobs(printer_id, material_id);
 """
 
+# Database migrations. NEVER edit an entry that was released - only append new ones.
+# Index i upgrades the database from user_version i to i+1. A backup is made before upgrading,
+# so what the app has learned survives every update.
+# Example of a future entry:  "ALTER TABLE jobs ADD COLUMN photo_path TEXT;",   # schema 2 (v0.2.0)
+MIGRATIONS: list[str] = [
+    SCHEMA,  # schema 1 (v0.1.0)
+]
+SCHEMA_VERSION = len(MIGRATIONS)
+
 
 class Memory:
     def __init__(self, path: str | Path | None = None):
         self.path = Path(path) if path else user_dir() / "forja3d.db"
         self.db = sqlite3.connect(self.path)
         self.db.row_factory = sqlite3.Row
-        self.db.executescript(SCHEMA)
+        self._migrate()
+
+    def _migrate(self) -> None:
+        current = self.db.execute("PRAGMA user_version").fetchone()[0]
+        target = len(MIGRATIONS)
+        if current > target:
+            raise RuntimeError("Baza de date e dintr-o versiune mai noua de Forja3D. Actualizeaza aplicatia.")
+        if current == target:
+            return
+        if current > 0 and self.path.exists():
+            shutil.copy2(self.path, self.path.with_suffix(f".db.bak-v{current}"))
+        for i in range(current, target):
+            self.db.executescript(MIGRATIONS[i])
+            self.db.execute(f"PRAGMA user_version = {i + 1}")
+        self.db.commit()
 
     def close(self):
         self.db.close()
 
     # ------------------------------------------------------------ writes
     def add_project(self, name, file_hash, source_path, stored_path, analysis: dict) -> int:
+        fv = analysis.get("features_version", FEATURES_VERSION)
         row = self.db.execute("SELECT id FROM projects WHERE file_hash=? AND file_hash IS NOT NULL",
                               (file_hash,)).fetchone()
         if row:
-            self.db.execute("UPDATE projects SET name=?, stored_path=?, analysis_json=?, features_json=?, "
-                            "dims_json=? WHERE id=?", (name, str(stored_path), json.dumps(analysis),
-                                           json.dumps(analysis["features"]),
-                                           json.dumps(analysis["dims_mm"]), row["id"]))
+            self.db.execute(
+                "UPDATE projects SET name=?, stored_path=?, analysis_json=?, features_json=?, dims_json=?, "
+                "features_version=? WHERE id=?",
+                (name, str(stored_path), json.dumps(analysis), json.dumps(analysis["features"]),
+                 json.dumps(analysis["dims_mm"]), fv, row["id"]))
             self.db.commit()
             return row["id"]
         cur = self.db.execute(
             "INSERT INTO projects(name,file_hash,source_path,stored_path,dims_json,features_json,"
-            "analysis_json,created) VALUES (?,?,?,?,?,?,?,?)",
+            "analysis_json,created,features_version) VALUES (?,?,?,?,?,?,?,?,?)",
             (name, file_hash, str(source_path), str(stored_path), json.dumps(analysis["dims_mm"]),
-             json.dumps(analysis["features"]), json.dumps(analysis), time.time()))
+             json.dumps(analysis["features"]), json.dumps(analysis), time.time(), fv))
         self.db.commit()
         return cur.lastrowid
 
@@ -120,14 +148,16 @@ class Memory:
         """Jobs with feedback for the same printer+material, sorted by shape similarity.
         Each result gets 'similarity' (0..1) and 'age_rank' (0 = newest)."""
         rows = self.db.execute(
-            "SELECT j.*, p.name AS project_name, p.features_json FROM jobs j "
+            "SELECT j.*, p.name AS project_name, p.features_json, p.features_version FROM jobs j "
             "JOIN projects p ON p.id=j.project_id "
             "WHERE j.printer_id=? AND j.material_id=? AND j.outcome IS NOT NULL "
             "ORDER BY j.feedback_at DESC LIMIT 200", (printer_id, material_id)).fetchall()
         out = []
         for age, r in enumerate(rows):
             j = self._job(r)
-            j["similarity"] = similarity(features, j.get("features") or [])
+            fv = j.pop("features_version", None)
+            same = (1 if fv is None else fv) == FEATURES_VERSION
+            j["similarity"] = similarity(features, j.get("features") if same else [])
             j["age_rank"] = age
             out.append(j)
         out.sort(key=lambda j: j["similarity"], reverse=True)

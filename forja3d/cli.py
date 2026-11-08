@@ -134,6 +134,21 @@ def cmd_generate(a):
         _print_result(r)
 
 
+def cmd_update(a):
+    from . import updates
+    r = updates.check(force=True)
+    if r.get("disabled"):
+        _out("Verificarea de update e dezactivata (FORJA3D_NO_UPDATE_CHECK).")
+    elif r.get("error"):
+        _out(f"Nu am putut verifica: {r['error']}")
+    elif not r.get("latest"):
+        _out(f"Ai versiunea {r['current']}. Inca nu exista niciun release publicat.")
+    elif r["update_available"]:
+        _out(f"Versiune noua: {r['latest']} (ai {r['current']}). Descarca: {r['url']}")
+    else:
+        _out(f"Ai ultima versiune ({r['current']}).")
+
+
 def cmd_ui(a):
     from .webui.server import serve
     serve(a.port, open_browser=not a.no_browser)
@@ -211,6 +226,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--size", type=float, help="dimensiunea maxima dorita (mm), implicit 50")
     p.add_argument("--name")
     p.set_defaults(fn=cmd_generate)
+
+    sub.add_parser("update", help="verifica daca exista o versiune noua").set_defaults(fn=cmd_update)
 
     p = sub.add_parser("ui", help="porneste interfata grafica in browser")
     p.add_argument("--port", type=int, default=8765)

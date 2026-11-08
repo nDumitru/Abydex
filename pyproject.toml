@@ -35,7 +35,7 @@ dev = ["pytest>=7"]
 forja3d = "forja3d.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/nechitadumitru/forja3d"
+Homepage = "https://github.com/nDumitru/forja3d"
 
 [tool.setuptools.dynamic]
 version = { attr = "forja3d.__version__" }

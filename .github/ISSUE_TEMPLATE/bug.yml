@@ -1,0 +1,18 @@
+name: Problemă / Bug
+description: Ceva nu merge cum ar trebui
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes: { label: Versiune Forja3D, placeholder: "forja3d --version, ex: 0.1.0" }
+    validations: { required: true }
+  - type: dropdown
+    id: os
+    attributes: { label: Sistem de operare, options: [Windows, Linux] }
+  - type: textarea
+    id: what
+    attributes: { label: Ce s-a întâmplat?, description: Pași, mesaj de eroare, fișierul folosit (dacă poți) }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: Ce te așteptai să se întâmple? }

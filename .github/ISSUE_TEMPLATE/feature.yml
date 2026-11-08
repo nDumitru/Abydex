@@ -1,0 +1,8 @@
+name: Idee / funcție nouă
+description: Propune ceva nou
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes: { label: Ce ai vrea să facă Forja3D?, description: Și de ce ți-ar fi util }
+    validations: { required: true }

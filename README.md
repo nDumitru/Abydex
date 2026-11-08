@@ -37,13 +37,13 @@ Descarcă `Forja3D-Setup-x.y.z.exe` din [Releases](../../releases) și rulează-
 
 ### Linux
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nechitadumitru/forja3d/main/packaging/linux/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/nDumitru/forja3d/main/packaging/linux/install.sh | bash
 ```
 sau din arhiva din Releases: `./packaging/linux/install.sh`. Apoi pornești cu `forja3d ui`.
 
 ### Din sursă (dezvoltatori)
 ```bash
-git clone https://github.com/nechitadumitru/forja3d && cd forja3d
+git clone https://github.com/nDumitru/forja3d && cd forja3d
 python -m pip install -e ".[dev]"
 python -m pytest
 forja3d ui
@@ -60,6 +60,7 @@ forja3d feedback 1 --fail --issues layer_split,stringing --rating 2
 forja3d feedback 2 --ok --set nozzle_temp=255      # ai schimbat temperatura in slicer
 forja3d history
 forja3d printers | forja3d materials | forja3d issues
+forja3d update                                       # exista o versiune noua?
 ```
 
 **Import în Bambu Studio / OrcaSlicer:** *File → Import → Import Configs…*, apoi alegi fișierele `.filament.json` / `.process.json`. Presetările moștenesc profilul generic oficial (ex. `Generic ASA @BBL A1`), deci restul setărilor rămân cele testate de producător.
@@ -74,6 +75,11 @@ Pe procesor durează ~1-3 minute și folosește ~6-8 GB RAM. Cu placă NVIDIA du
 ## Imprimante și materiale proprii
 Creează `printers.json` sau `materials.json` în folderul de date (`forja3d info`), cu aceeași structură ca [forja3d/data](forja3d/data). Cheile noi se adaugă, iar cele existente se suprascriu.
 
+## Update-uri și versiuni
+- Instalezi versiunea nouă peste cea veche (Windows: rulezi noul `Setup.exe`; Linux: rulezi din nou scriptul). **Memoria, profilele tale și motoarele AI se păstrează.** Înainte de orice schimbare de structură, baza de date primește automat un backup.
+- Aplicația îți arată în interfață când apare o versiune nouă. Dezactivezi cu `FORJA3D_NO_UPDATE_CHECK=1`.
+- Ce s-a schimbat în fiecare versiune: [CHANGELOG.md](CHANGELOG.md). Cum se face un release: [docs/RELEASING.md](docs/RELEASING.md).
+
 ## Roadmap
 - [x] v0.1: reparare, orientare, analiză, setări pe material, învățare din feedback, export slicer, UI web, TripoSR pe CPU, installere
 - [ ] Text → 3D (text → imagine → 3D), plus TRELLIS și alte motoare pentru plăci video puternice
@@ -84,6 +90,7 @@ Creează `printers.json` sau `materials.json` în folderul de date (`forja3d inf
 - [ ] AppImage / Flatpak, interfață în engleză
 
 ## Contribuții
+Detalii în [CONTRIBUTING.md](CONTRIBUTING.md).
 Sunt binevenite, mai ales **profile de materiale și imprimante testate**: deschide un PR cu modificările în `forja3d/data/*.json` și spune ce ai testat.
 
 ## Licențe

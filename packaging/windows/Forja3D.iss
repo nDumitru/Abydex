@@ -3,12 +3,19 @@
 #ifndef AppVersion
   #define AppVersion "0.1.0"
 #endif
+; numeric part only (0.2.0-beta.1 -> 0.2.0), Windows file versions must be numbers
+#ifndef NumVersion
+  #define NumVersion "0.1.0"
+#endif
 
 [Setup]
 AppId={{6E0B7C9A-3F1D-4C55-9C1E-F0A1D3D3F3D1}
 AppName=Forja3D
 AppVersion={#AppVersion}
 AppPublisher=Forja3D contributors
+AppPublisherURL=https://github.com/nDumitru/forja3d
+AppUpdatesURL=https://github.com/nDumitru/forja3d/releases
+VersionInfoVersion={#NumVersion}
 DefaultDirName={localappdata}\Programs\Forja3D
 DefaultGroupName=Forja3D
 ; per-user install: no admin needed, and AI engines can be installed later without admin

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Forja3D installer for Linux (per user, no root needed).
-#   curl -fsSL https://raw.githubusercontent.com/nechitadumitru/forja3d/main/packaging/linux/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/nDumitru/forja3d/main/packaging/linux/install.sh | bash
 # or, from an extracted release / clone:  ./packaging/linux/install.sh
 set -euo pipefail
 
@@ -16,7 +16,7 @@ PY="$(command -v python3 || true)"
 if [ -z "$SRC" ]; then
   HERE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
   if [ -n "$HERE" ] && [ -f "$HERE/../../pyproject.toml" ]; then SRC="$HERE/../.."
-  else SRC="git+https://github.com/nechitadumitru/forja3d.git"; fi
+  else SRC="git+https://github.com/nDumitru/forja3d.git"; fi
 fi
 
 echo "Instalez Forja3D in $APP ..."

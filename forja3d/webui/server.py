@@ -109,6 +109,9 @@ class Handler(BaseHTTPRequestHandler):
                     "engines": {k: {**e, "installed": generate.is_installed(k)} for k, e in generate.ENGINES.items()},
                     "data_dir": str(catalog.user_dir()),
                 })
+            if u.path == "/api/update":
+                from .. import updates
+                return self._json(updates.check())
             if u.path == "/api/history":
                 mem = Memory()
                 try:

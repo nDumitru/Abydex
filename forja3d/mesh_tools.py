@@ -8,6 +8,8 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
+# Bump when shape_features() changes, so old and new "fingerprints" are never compared directly.
+FEATURES_VERSION = 1
 OVERHANG_DEG = 45.0  # faces steeper than this (measured from vertical) need support
 
 
@@ -165,6 +167,7 @@ class Analysis:
     min_wall_mm: float | None
     bodies: int
     features: list[float]
+    features_version: int = FEATURES_VERSION
 
     def to_dict(self) -> dict:
         return asdict(self)
