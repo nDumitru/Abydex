@@ -18,7 +18,7 @@
     <button class="tab" data-tab="engines">Motoare AI</button>
     <button class="tab" data-tab="settings">Setări AI</button>
   </nav>
-  <a id="update" class="update" target="_blank" rel="noopener" hidden></a>
+  <button id="update" class="update" hidden></button>
   <div id="version" class="muted"></div>
 </header>
 
@@ -108,6 +108,9 @@
       <button class="chip" id="testLlm">Testează AI-ul de text</button>
     </div>
     <div id="settingsMsg" class="muted"></div>
+    <h2 style="margin-top:26px">Despre Abydex</h2>
+    <p>Versiunea instalată: <b id="aboutVersion"></b> <span id="aboutStatus" class="muted"></span></p>
+    <div class="row-btn"><button class="chip" id="checkUpdate">Verifică update-uri</button></div>
     <p class="muted small" style="margin-top:18px">🔒 Cheile se salvează doar pe calculatorul tău (fișierul settings.json din
       folderul de date) și nu sunt trimise nicăieri altundeva decât la furnizorul ales. Când folosești un serviciu online,
       descrierea piesei se trimite la el, iar costurile sunt cele ale furnizorului. Numele modelelor se schimbă des:

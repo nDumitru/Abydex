@@ -122,7 +122,10 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(settings.public_view())
             if u.path == "/api/update":
                 from .. import updates
-                return self._json(updates.check())
+                return self._json(updates.check(force=q.get("force") == "1"))
+            if u.path == "/api/update/status":
+                from .. import updates
+                return self._json(dict(updates.STATE))
             if u.path == "/api/history":
                 mem = Memory()
                 try:
@@ -179,6 +182,15 @@ class Handler(BaseHTTPRequestHandler):
             if u.path == "/api/settings":
                 from .. import settings
                 return self._json(settings.update(json.loads(self._body() or b"{}")))
+            if u.path == "/api/update/install":
+                from .. import updates
+                info = updates.check(force=True)
+                if not info.get("update_available"):
+                    raise ValueError("Ai deja ultima versiune.")
+                if not info.get("can_install"):
+                    raise ValueError("Update-ul nu se poate instala automat pe aceasta instalare. "
+                                     f"Descarca-l de aici: {info.get('url')}")
+                return self._json(updates.start_install(info))
             if u.path == "/api/settings/test":
                 from .. import llm, settings, textcad
                 cfg = settings.llm_config()

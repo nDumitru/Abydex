@@ -55,10 +55,19 @@ Type: files; Name: "{autodesktop}\{#OldApp}.lnk"
 Source: "..\..\build\app\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
-Name: "{group}\Abydex"; Filename: "{app}\Abydex.cmd"; WorkingDir: "{app}"; IconFilename: "{app}\abydex.ico"
+Name: "{group}\Abydex"; Filename: "{app}\python\pythonw.exe"; Parameters: "-m abydex app"; WorkingDir: "{app}"; IconFilename: "{app}\abydex.ico"; AppUserModelID: "Abydex.Desktop"
+Name: "{group}\Abydex (mod depanare)"; Filename: "{app}\Abydex.cmd"; WorkingDir: "{app}"; IconFilename: "{app}\abydex.ico"
 Name: "{group}\Abydex - linie de comanda"; Filename: "{cmd}"; Parameters: "/k ""{app}\bin\abydex.cmd"" --help"; WorkingDir: "{userdocs}"
 Name: "{group}\{cm:UninstallProgram,Abydex}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\Abydex"; Filename: "{app}\Abydex.cmd"; WorkingDir: "{app}"; IconFilename: "{app}\abydex.ico"; Tasks: desktopicon
+Name: "{autodesktop}\Abydex"; Filename: "{app}\python\pythonw.exe"; Parameters: "-m abydex app"; WorkingDir: "{app}"; IconFilename: "{app}\abydex.ico"; AppUserModelID: "Abydex.Desktop"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Abydex.cmd"; Description: "{cm:LaunchProgram,Abydex}"; Flags: nowait postinstall skipifsilent shellexec
+Filename: "{app}\python\pythonw.exe"; Parameters: "-m abydex app"; WorkingDir: "{app}"; Description: "{cm:LaunchProgram,Abydex}"; Flags: nowait postinstall skipifsilent
+; update started from inside the app (silent install): start the new version when done
+Filename: "{app}\python\pythonw.exe"; Parameters: "-m abydex app"; WorkingDir: "{app}"; Flags: nowait; Check: AutoStart
+
+[Code]
+function AutoStart: Boolean;
+begin
+  Result := ExpandConstant('{param:AUTOSTART|0}') = '1';
+end;

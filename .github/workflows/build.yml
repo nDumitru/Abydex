@@ -41,6 +41,7 @@ jobs:
           $env:ABYDEX_NO_UPDATE_CHECK = "1"
           $cli = "$PWD\build\app\bin\abydex.cmd"
           & $cli doctor; if ($LASTEXITCODE) { exit 1 }
+          & "$PWD\build\app\python\python.exe" -c "import webview; print('pywebview OK')"; if ($LASTEXITCODE) { exit 1 }
           & $cli text "cutie 80x50x30 cu capac" -p bambu_a1 -m pla --no-llm; if ($LASTEXITCODE) { exit 1 }
           $p = Start-Process -PassThru -NoNewWindow "$PWD\build\app\python\python.exe" -ArgumentList "-m","abydex","ui","--no-browser","--port","8799"
           $ok = $false
@@ -123,6 +124,9 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+      - name: Checksums (verified by the in-app updater)
+        if: steps.meta.outputs.skip == 'false'
+        run: cd artifacts && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
       - uses: softprops/action-gh-release@v2
         if: steps.meta.outputs.skip == 'false'
         with:

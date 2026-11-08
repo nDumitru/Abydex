@@ -5,6 +5,16 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-08
+
+### Adaugat
+- **Aplicatie cu fereastra proprie**: Abydex porneste ca un program normal (WebView2 pe Windows), fara browser
+  si fara consola; daca fereastra nativa nu e disponibila, foloseste Edge/Chrome in mod aplicatie.
+- **Update direct din aplicatie**: butonul *Actualizeaza* descarca versiunea noua de pe GitHub, verifica suma
+  SHA-256, o instaleaza si reporneste aplicatia. Fiecare release are acum fisierul `SHA256SUMS.txt`.
+- *Setari AI -> Despre Abydex*: versiunea instalata si butonul *Verifica update-uri*.
+- Scurtatura *Abydex (mod depanare)*, cu consola, pentru diagnostic.
+
 ## [0.3.1] - 2026-11-08
 
 ### Adaugat
@@ -68,6 +78,7 @@ Prima versiune publica este 0.3.0._
 - Migrari versionate ale bazei de date (cu backup automat) si verificare de versiune noua.
 - Installer Windows (fara Python, fara admin), script de instalare Linux, build automat prin GitHub Actions.
 
-[Unreleased]: https://github.com/nDumitru/abydex/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/nDumitru/abydex/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/nDumitru/abydex/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/nDumitru/abydex/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/nDumitru/abydex/releases/tag/v0.3.0

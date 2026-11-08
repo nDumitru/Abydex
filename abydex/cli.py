@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import json
 import sys
 from pathlib import Path
@@ -189,6 +190,18 @@ def cmd_update(a):
         _out(f"Ai ultima versiune ({r['current']}).")
 
 
+def cmd_app(a):
+    from . import desktop, logs
+    try:
+        desktop.run(a.port, a.mode)
+    except Exception as e:
+        logs.setup().exception("aplicatia nu a pornit")
+        desktop.error_box(f"Abydex nu a putut porni:\n{type(e).__name__}: {e}\n\n"
+                          f"Detalii in {logs.log_path()}.\nRuleaza 'Abydex (mod depanare)' din meniul Start "
+                          "pentru un diagnostic complet.")
+        raise SystemExit(1)
+
+
 def cmd_ui(a):
     from .webui.server import serve
     serve(a.port, open_browser=not a.no_browser)
@@ -284,6 +297,12 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("doctor", help="verifica instalarea (pentru raportare probleme)").set_defaults(fn=cmd_doctor)
     sub.add_parser("update", help="verifica daca exista o versiune noua").set_defaults(fn=cmd_update)
 
+    p = sub.add_parser("app", help="porneste aplicatia in fereastra proprie (implicit)")
+    p.add_argument("--port", type=int, default=8765)
+    p.add_argument("--mode", choices=["auto", "window", "browser"], default="auto",
+                   help="window = doar fereastra nativa, browser = in browser")
+    p.set_defaults(fn=cmd_app)
+
     p = sub.add_parser("ui", help="porneste interfata grafica in browser")
     p.add_argument("--port", type=int, default=8765)
     p.add_argument("--no-browser", action="store_true")
@@ -294,8 +313,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv=None) -> int:
     ap = build_parser()
     a = ap.parse_args(argv)
+    if sys.stdout is None:  # started with pythonw (no console)
+        sys.stdout = sys.stderr = open(os.devnull, "w")
     if not getattr(a, "fn", None):
-        a = ap.parse_args(["ui"])
+        a = ap.parse_args(["app"])
     from . import logs
     log = logs.setup()
     try:

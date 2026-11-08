@@ -81,13 +81,7 @@ async function init() {
   for (const id of ["material", "layer", "nozzle"]) $("#" + id).onchange = persist;
   renderEngines();
   initText();
-  api("/api/update").then((u) => {
-    if (!u.update_available) return;
-    const a = $("#update");
-    a.hidden = false; a.href = u.url;
-    a.textContent = `Versiune nouă: ${u.latest} ↗`;
-    a.title = u.notes || "";
-  }).catch(() => {});
+  checkUpdate(false);
 }
 const tech = () => CAT.printers[$("#printer").value].technology;
 function fillMaterials() {
@@ -409,6 +403,60 @@ $("#testLlm").onclick = async () => {
     const r = await api("/api/settings/test", { method: "POST" });
     $("#settingsMsg").textContent = `Merge ✓ ${r.provider} (${r.model}) a răspuns: ${JSON.stringify(r.answer.template ? { template: r.answer.template, params: r.answer.params } : r.answer)}`;
   } catch (e) { $("#settingsMsg").textContent = "Nu merge: " + e.message; }
+};
+
+// ------------------------------------------------------------------ updates
+let UPD = null;
+async function checkUpdate(force) {
+  try {
+    UPD = await api("/api/update" + (force ? "?force=1" : ""));
+  } catch (e) { UPD = null; }
+  $("#aboutVersion").textContent = "v" + CAT.version;
+  const st = $("#aboutStatus");
+  if (!UPD || UPD.disabled) { st.textContent = UPD && UPD.disabled ? "(verificarea e dezactivată)" : ""; return; }
+  if (UPD.error) { st.textContent = "– nu am putut verifica (ești offline?)"; return; }
+  if (UPD.update_available) {
+    st.textContent = `– există versiunea ${UPD.latest}`;
+    const b = $("#update"); b.hidden = false; b.textContent = `⬆ Actualizează la ${UPD.latest}`;
+    b.onclick = showUpdate;
+  } else {
+    st.textContent = "– e ultima versiune ✓";
+    $("#update").hidden = true;
+  }
+}
+function showUpdate() {
+  const m = document.createElement("div"); m.className = "modal";
+  const auto = UPD.can_install;
+  m.innerHTML = `<div class="panel"><h2>Abydex ${esc(UPD.latest)}</h2>
+    <div class="muted">Ai acum v${esc(UPD.current)}. Ce e nou:</div>
+    <div class="notes">${esc((UPD.notes || "").replace(/^#+\s*/gm, "").replace(/\*\*|`/g, ""))}</div>
+    <div class="bar" hidden><div></div></div><div class="muted small msg"></div>
+    <div class="row-btn">${auto ? '<button class="primary go">Instalează acum</button>' : ""}
+      <a href="${esc(UPD.url)}" target="_blank" rel="noopener">${auto ? "sau descarcă manual ↗" : "Descarcă de pe GitHub ↗"}</a>
+      <button class="chip close">Mai târziu</button></div>
+    ${auto ? '<p class="muted small">Datele tale (istoric, profile, setări) rămân neatinse. Aplicația se închide câteva secunde și pornește singură în versiunea nouă.</p>' : ""}</div>`;
+  $(".close", m).onclick = () => m.remove();
+  const go = $(".go", m);
+  if (go) go.onclick = async () => {
+    go.disabled = true; $(".close", m).disabled = true; $(".bar", m).hidden = false;
+    try {
+      await api("/api/update/install", { method: "POST" });
+      const tick = setInterval(async () => {
+        let s;
+        try { s = await api("/api/update/status"); }
+        catch { $(".msg", m).textContent = "Se instalează versiunea nouă… aplicația pornește singură."; clearInterval(tick); return; }
+        $(".bar > div", m).style.width = s.progress + "%";
+        $(".msg", m).textContent = s.message;
+        if (s.stage === "error") { clearInterval(tick); go.disabled = false; $(".close", m).disabled = false; }
+      }, 700);
+    } catch (e) { $(".msg", m).textContent = "Eroare: " + e.message; go.disabled = false; $(".close", m).disabled = false; }
+  };
+  document.body.appendChild(m);
+}
+$("#checkUpdate").onclick = async () => {
+  $("#aboutStatus").textContent = "– verific…";
+  await checkUpdate(true);
+  if (UPD && UPD.update_available) showUpdate();
 };
 
 $$(".tab").forEach((t) => (t.onclick = () => {

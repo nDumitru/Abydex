@@ -38,10 +38,10 @@ Totul stă local, într-o bază SQLite (`abydex info` îți arată folderul).
 ## Instalare
 
 ### Windows
-Descarcă `Abydex-Setup-x.y.z.exe` din [Releases](../../releases) și rulează-l. Nu cere drepturi de administrator și nu ai nevoie de Python instalat. Pornești din meniul Start → **Abydex**: se deschide o fereastră neagră (serverul local, o lași deschisă) și aplicația în browser.
+Descarcă `Abydex-Setup-x.y.z.exe` din [Releases](../../releases) și rulează-l. Nu cere drepturi de administrator și nu ai nevoie de Python instalat. Pornești din meniul Start → **Abydex**: aplicația se deschide în fereastra ei proprie (motorul WebView2 din Windows), fără browser și fără consolă.
 
 - Windows poate afișa *„Windows protected your PC”*, pentru că installerul nu e semnat digital încă: apeși *More info → Run anyway*.
-- Dacă ceva nu merge, fereastra neagră rămâne deschisă cu un raport. Îl poți genera oricând din *Start → Abydex - linie de comandă* cu `abydex doctor`. Trimite-l într-un [issue](../../issues).
+- Dacă ceva nu merge, pornește *Start → Abydex (mod depanare)*: deschide aplicația cu o consolă care afișează un raport la eroare. Raportul îl poți genera oricând și din *Start → Abydex - linie de comandă* cu `abydex doctor`. Trimite-l într-un [issue](../../issues).
 
 ### Linux
 ```bash
@@ -110,7 +110,8 @@ Creează `printers.json` sau `materials.json` în folderul de date (`abydex info
 - Claude e apelat prin SDK-ul oficial `anthropic`, cu răspuns JSON garantat prin schemă (structured outputs). Dacă un filtru de siguranță refuză cererea, API-ul o reia automat pe un model de rezervă (`fallbacks: "default"`).
 
 ## Update-uri și versiuni
-- Instalezi versiunea nouă peste cea veche (Windows: rulezi noul `Setup.exe`; Linux: rulezi din nou scriptul). **Memoria, profilele tale și motoarele AI se păstrează.** Înainte de orice schimbare de structură, baza de date primește automat un backup.
+- **Update din aplicație:** când apare o versiune nouă, sus în dreapta apare butonul *Actualizează*. Abydex descarcă versiunea nouă de pe GitHub, verifică suma de control SHA-256 (dacă nu se potrivește, nu instalează nimic), o instalează și pornește din nou singur. Poți verifica oricând din *Setări AI → Despre Abydex*.
+- Manual: instalezi versiunea nouă peste cea veche (Windows: rulezi noul `Setup.exe`; Linux: rulezi din nou scriptul). **Memoria, profilele tale și motoarele AI se păstrează.** Înainte de orice schimbare de structură, baza de date primește automat un backup.
 - Aplicația îți arată în interfață când apare o versiune nouă. Dezactivezi cu `ABYDEX_NO_UPDATE_CHECK=1`.
 - Ce s-a schimbat în fiecare versiune: [CHANGELOG.md](CHANGELOG.md). Cum se face un release: [docs/RELEASING.md](docs/RELEASING.md).
 
