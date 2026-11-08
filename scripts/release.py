@@ -15,9 +15,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-INIT = ROOT / "forja3d" / "__init__.py"
+INIT = ROOT / "abydex" / "__init__.py"
 CHANGELOG = ROOT / "CHANGELOG.md"
-REPO = "https://github.com/nDumitru/forja3d"
+REPO = "https://github.com/nDumitru/abydex"
 SEMVER = re.compile(r"^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$")
 
 

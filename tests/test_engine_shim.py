@@ -7,7 +7,7 @@ import trimesh  # noqa: E402
 
 
 def test_mcubes_shim_matches_triposr_conventions():
-    from forja3d.engines.triposr_runner import _install_mcubes_shim
+    from abydex.engines.triposr_runner import _install_mcubes_shim
     _install_mcubes_shim()
     from torchmcubes import marching_cubes
 

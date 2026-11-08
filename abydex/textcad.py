@@ -11,15 +11,11 @@ never executable code.
 from __future__ import annotations
 
 import json
-import os
 import re
 import unicodedata
-import urllib.request
 
 from . import csg, templates
 
-OLLAMA_URL = os.environ.get("FORJA3D_OLLAMA_URL", "http://127.0.0.1:11434")
-DEFAULT_LLM = os.environ.get("FORJA3D_LLM", "qwen2.5-coder:3b")
 
 
 def normalize(text: str) -> str:
@@ -171,21 +167,17 @@ def parse_rules(text: str) -> dict | None:
 # ----------------------------------------------------------------------------- LLM
 def ollama_models(timeout: float = 1.5) -> list[str] | None:
     """Installed Ollama models, or None if Ollama is not running."""
-    try:
-        with urllib.request.urlopen(OLLAMA_URL + "/api/tags", timeout=timeout) as r:
-            return [m["name"] for m in json.load(r).get("models", [])]
-    except Exception:
-        return None
+    from . import llm, settings
+    return llm.ollama_models(settings.llm_config()["base_url"] if settings.llm_config()["kind"] == "ollama"
+                             else settings.LLM_PROVIDERS["ollama"]["base_url"], timeout)
 
 
-def _llm_prompt(text: str, examples: list[dict]) -> str:
+def system_prompt() -> str:
     tdesc = {n: {"description": d["description"], "params": {k: v["label"] for k, v in d["params"].items()}}
              for n, d in templates.describe().items()}
-    ex = "\n".join(f"Cerere: {e['prompt']}\nJSON: {json.dumps(e['design'], ensure_ascii=False)}"
-                   for e in examples[:4])
-    return f"""Esti un proiectant CAD pentru printare 3D. Transformi cererea in JSON, unitati mm.
-Raspunde DOAR cu un obiect JSON, in una din formele:
-1) {{"template": "<nume>", "params": {{...}}}}  - daca cererea se potriveste unui sablon:
+    return f"""Esti un proiectant CAD pentru printare 3D. Transformi cererea utilizatorului (romana sau
+engleza) intr-un obiect JSON, unitati mm. Raspunzi DOAR cu JSON, in una din formele:
+1) {{"template": "<nume>", "params": {{...}}}} - daca cererea se potriveste unui sablon:
 {json.dumps(tdesc, ensure_ascii=False)}
 2) {{"csg": <arbore>}} - pentru alte piese tehnice. Elemente permise:
  {{"box":[x,y,z],"r":raza}}, {{"cylinder":{{"d":D,"h":H,"d2":D2}}}}, {{"sphere":{{"d":D}}}},
@@ -193,32 +185,32 @@ Raspunde DOAR cu un obiect JSON, in una din formele:
  {{"intersection":[...]}}, {{"hull":[...]}}, {{"grid":{{"node":N,"count":[nx,ny],"step":[dx,dy]}}}},
  {{"ring":{{"node":N,"count":n,"radius":R}}}}; orice element poate avea "move":[x,y,z] si "rotate":[rx,ry,rz].
  Solidele stau pe z=0, centrate in XY. Gauri pentru surub M3 = 3.4 mm, M4 = 4.5, M5 = 5.5.
-3) {{"organic": true}} - daca cererea e un obiect artistic/organic (figurina, animal, vaza decorativa).
-{('Exemple care au iesit bine:' + chr(10) + ex) if ex else ''}
-Cerere: {text}
-JSON:"""
+ Proiecteaza piesa printabila: pereti de minim 1.2 mm, fara console mari daca se poate evita.
+3) {{"organic": true}} - daca cererea e un obiect artistic/organic (figurina, animal, vaza decorativa)."""
 
 
-def parse_llm(text: str, model: str | None = None, examples: list[dict] | None = None,
-              timeout: float = 300) -> dict | None:
-    body = json.dumps({"model": model or DEFAULT_LLM, "prompt": _llm_prompt(text, examples or []),
-                       "format": "json", "stream": False, "options": {"temperature": 0.1}}).encode()
-    req = urllib.request.Request(OLLAMA_URL + "/api/generate", data=body,
-                                 headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        raw = json.load(r).get("response", "")
-    data = json.loads(raw)
+def _user_prompt(text: str, examples: list[dict]) -> str:
+    ex = "\n".join(f"Cerere: {e['prompt']}\nJSON: {json.dumps(e['design'], ensure_ascii=False)}"
+                   for e in examples[:4])
+    return (("Exemple care au iesit bine la print:\n" + ex + "\n\n") if ex else "") + f"Cerere: {text}"
+
+
+def parse_llm(text: str, examples: list[dict] | None = None, cfg: dict | None = None) -> dict | None:
+    from . import llm, settings
+    cfg = cfg or settings.llm_config()
+    data = llm.complete_json(system_prompt(), _user_prompt(text, examples or []), cfg)
     if not isinstance(data, dict):
         return None
+    source = "llm" if cfg["kind"] == "ollama" else f"llm ({cfg['label']})"
     if data.get("organic"):
-        return {"organic": True, "source": "llm"}
+        return {"organic": True, "source": source}
     if "template" in data and data["template"] in templates.TEMPLATES:
         return {"template": data["template"],
                 "params": templates.clean_params(data["template"], data.get("params") or {}),
-                "notes": [], "source": "llm"}
+                "notes": [], "source": source}
     if "csg" in data and isinstance(data["csg"], dict):
         csg.build(data["csg"])  # validate now; raises CSGError if invalid
-        return {"csg": data["csg"], "notes": [], "source": "llm"}
+        return {"csg": data["csg"], "notes": [], "source": source}
     return None
 
 
@@ -242,7 +234,7 @@ def similar_prompt(text: str, past: list[dict], threshold: float = 0.85) -> dict
 
 
 def understand(text: str, mode: str = "auto", use_llm: bool = True, past: list[dict] | None = None,
-               llm_model: str | None = None) -> dict:
+               llm_cfg: dict | None = None) -> dict:
     """Decide what to build. Returns one of:
        {"template", "params", ...} | {"csg", ...} | {"organic": True, ...}"""
     text = (text or "").strip()
@@ -257,20 +249,23 @@ def understand(text: str, mode: str = "auto", use_llm: bool = True, past: list[d
             d["source"] = "memorie"
             d.setdefault("notes", []).append(f"Am refolosit designul care a iesit bine la: \"{hit['prompt']}\".")
             return d
-        if use_llm and ollama_models() is not None:
-            try:
-                d = parse_llm(text, llm_model, examples=past)
-                if d and not (d.get("organic") and mode == "technical"):
-                    return d
-            except Exception as e:  # LLM output invalid: fall back to rules
-                notes.append(f"Modelul AI local nu a dat un raspuns valid ({e}); am folosit regulile.")
+        if use_llm:
+            from . import llm, settings
+            cfg = llm_cfg or settings.llm_config()
+            if llm.available(cfg):
+                try:
+                    d = parse_llm(text, examples=past, cfg=cfg)
+                    if d and not (d.get("organic") and mode == "technical"):
+                        return d
+                except Exception as e:  # LLM unreachable / invalid output: fall back to rules
+                    notes.append(f"AI-ul ({cfg['label']}) nu a dat un raspuns valid ({e}); am folosit regulile.")
         d = parse_rules(text)
         if d:
             d["notes"] = notes + d["notes"]
             return d
         if mode == "technical":
             raise ValueError("Nu am recunoscut tipul piesei. Incearca: cutie, suport L, distantier, placa cu "
-                             "gauri, carlig, organizator - sau porneste Ollama pentru piese libere.")
+                             "gauri, carlig, organizator - sau alege un furnizor AI in Setari AI pentru piese libere.")
     return {"organic": True, "notes": notes, "source": "imagine"}
 
 

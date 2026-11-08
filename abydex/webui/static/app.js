@@ -65,7 +65,7 @@ async function api(path, opts) {
   if (!r.ok || d.error) throw new Error(d.error || r.statusText);
   return d;
 }
-const saved = JSON.parse(localStorage.getItem("forja3d") || "{}");
+const saved = JSON.parse(localStorage.getItem("abydex") || "{}");
 
 async function init() {
   CAT = await api("/api/catalog");
@@ -100,7 +100,7 @@ function fillMaterials() {
   drawBed(p.volume_mm);
 }
 function persist() {
-  localStorage.setItem("forja3d", JSON.stringify({ printer: $("#printer").value, material: $("#material").value,
+  localStorage.setItem("abydex", JSON.stringify({ printer: $("#printer").value, material: $("#material").value,
     layer: $("#layer").value, nozzle: $("#nozzle").value }));
 }
 
@@ -151,11 +151,7 @@ function initText() {
     design = null; $("#design").innerHTML = "";
     if (source === "text") $("#go").disabled = !$("#prompt").value.trim();
   };
-  api("/api/llm").then((l) => {
-    $("#llmInfo").textContent = l.running
-      ? `AI text local activ (Ollama: ${l.models.join(", ") || "fără modele"}) – înțelege și piese libere.`
-      : "Piesele tehnice merg fără internet și fără placă video. Pentru piese libere poți instala Ollama (opțional).";
-  }).catch(() => {});
+  refreshLlmInfo();
 }
 
 function templateDefaults(name) {
@@ -349,10 +345,77 @@ function renderEngines() {
   }
 }
 
+// ------------------------------------------------------------------ AI settings
+let SET = null;
+function refreshLlmInfo() {
+  api("/api/llm").then((l) => {
+    let t = l.ready ? `AI text: ${l.label} (${l.model}) – înțelege și piese libere.`
+      : "Piesele tehnice merg fără internet și fără placă video. Pentru piese libere alege un AI în „Setări AI”.";
+    if (l.cloud3d) t += ` Obiectele decorative se generează în cloud (${l.cloud3d}).`;
+    $("#llmInfo").textContent = t;
+  }).catch(() => {});
+}
+function fillSettingsForm() {
+  const lp = SET.llm_providers[$("#llmProvider").value];
+  $("#llmModel").placeholder = lp.model || "numele modelului";
+  $("#llmUrlBox").hidden = !(lp.kind === "ollama" || $("#llmProvider").value === "custom");
+  $("#llmUrl").placeholder = lp.base_url;
+  $("#llmKeyBox").hidden = lp.kind === "ollama";
+  const has = SET.key_set[$("#llmProvider").value];
+  $("#llmKey").placeholder = has ? "cheie salvată ✓ (scrie alta ca s-o înlocuiești)" : "lipește cheia aici";
+  $("#llmKeyDel").hidden = !has || lp.kind === "ollama";
+  $("#llmLink").textContent = lp.url ? (lp.kind === "ollama" ? "Descarcă Ollama ↗" : "Obține o cheie API ↗") : "";
+  $("#llmLink").href = lp.url || "#";
+  const c3 = $("#c3Provider").value, cp = SET.cloud3d_providers[c3];
+  for (const id of ["#c3ModelBox", "#c3KeyBox"]) $(id).hidden = !c3;
+  $("#c3Key").placeholder = c3 && SET.key_set[c3] ? "cheie salvată ✓ (scrie alta ca s-o înlocuiești)" : "lipește cheia aici";
+  $("#c3KeyDel").hidden = !(c3 && SET.key_set[c3]);
+  $("#c3Model").placeholder = cp ? cp.model : "";
+  $("#c3Link").textContent = cp ? "Obține o cheie API ↗" : ""; $("#c3Link").href = cp ? cp.url : "#";
+}
+async function loadSettings() {
+  SET = await api("/api/settings");
+  const sel = $("#llmProvider"); sel.innerHTML = "";
+  for (const [k, p] of Object.entries(SET.llm_providers)) sel.add(new Option(p.label + (SET.key_set[k] ? " ✓" : ""), k));
+  sel.value = SET.llm.provider || "ollama";
+  $("#llmModel").value = SET.llm.model || ""; $("#llmUrl").value = SET.llm.base_url || "";
+  const c3 = $("#c3Provider"); c3.length = 1;
+  for (const [k, p] of Object.entries(SET.cloud3d_providers)) c3.add(new Option(p.label + (SET.key_set[k] ? " ✓" : ""), k));
+  c3.value = SET.cloud3d.provider || ""; $("#c3Model").value = SET.cloud3d.model || "";
+  fillSettingsForm();
+}
+$("#llmProvider").onchange = () => { $("#llmModel").value = ""; $("#llmUrl").value = ""; $("#llmKey").value = ""; fillSettingsForm(); };
+$("#c3Provider").onchange = () => { $("#c3Model").value = ""; $("#c3Key").value = ""; fillSettingsForm(); };
+async function saveSettings(extraKeys = {}) {
+  const keys = { ...extraKeys };
+  if ($("#llmKey").value.trim()) keys[$("#llmProvider").value] = $("#llmKey").value.trim();
+  if ($("#c3Provider").value && $("#c3Key").value.trim()) keys[$("#c3Provider").value] = $("#c3Key").value.trim();
+  SET = await api("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+    llm: { provider: $("#llmProvider").value, model: $("#llmModel").value, base_url: $("#llmUrl").value },
+    cloud3d: { provider: $("#c3Provider").value, model: $("#c3Model").value }, keys }) });
+  $("#llmKey").value = ""; $("#c3Key").value = "";
+  await loadSettings(); refreshLlmInfo();
+}
+$("#saveSettings").onclick = async () => {
+  try { await saveSettings(); $("#settingsMsg").textContent = "Salvat ✓"; }
+  catch (e) { $("#settingsMsg").textContent = "Eroare: " + e.message; }
+};
+$("#llmKeyDel").onclick = () => saveSettings({ [$("#llmProvider").value]: "" }).then(() => ($("#settingsMsg").textContent = "Cheie ștearsă."));
+$("#c3KeyDel").onclick = () => saveSettings({ [$("#c3Provider").value]: "" }).then(() => ($("#settingsMsg").textContent = "Cheie ștearsă."));
+$("#testLlm").onclick = async () => {
+  $("#settingsMsg").textContent = "Salvez și trimit o cerere de test („cutie 60x40x25 cu capac”)...";
+  try {
+    await saveSettings();
+    const r = await api("/api/settings/test", { method: "POST" });
+    $("#settingsMsg").textContent = `Merge ✓ ${r.provider} (${r.model}) a răspuns: ${JSON.stringify(r.answer.template ? { template: r.answer.template, params: r.answer.params } : r.answer)}`;
+  } catch (e) { $("#settingsMsg").textContent = "Nu merge: " + e.message; }
+};
+
 $$(".tab").forEach((t) => (t.onclick = () => {
   $$(".tab").forEach((x) => x.classList.toggle("active", x === t));
   $$(".tabpage").forEach((p) => p.classList.toggle("active", p.id === "tab-" + t.dataset.tab));
   if (t.dataset.tab === "history") renderHistory();
+  if (t.dataset.tab === "settings") loadSettings().catch((e) => ($("#settingsMsg").textContent = e.message));
   if (t.dataset.tab === "work") resize();
 }));
 

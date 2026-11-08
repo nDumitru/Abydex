@@ -6,14 +6,14 @@ from pathlib import Path
 
 import pytest
 
-from forja3d import catalog, memory, updates
+from abydex import catalog, memory, updates
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
 @pytest.fixture(autouse=True)
 def home(tmp_path, monkeypatch):
-    monkeypatch.setenv("FORJA3D_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ABYDEX_HOME", str(tmp_path / "home"))
     yield tmp_path
 
 
@@ -73,12 +73,12 @@ def test_update_check_offline_is_harmless(monkeypatch):
 
 
 def test_update_check_can_be_disabled(monkeypatch):
-    monkeypatch.setenv("FORJA3D_NO_UPDATE_CHECK", "1")
+    monkeypatch.setenv("ABYDEX_NO_UPDATE_CHECK", "1")
     assert updates.check()["disabled"]
 
 
 def test_changelog_has_notes_for_current_version():
-    from forja3d import __version__
+    from abydex import __version__
     out = subprocess.run([sys.executable, str(ROOT / "scripts" / "release.py"), "--notes", __version__],
                          capture_output=True, text=True, check=True).stdout
     assert out.strip() and out.strip() != "Vezi CHANGELOG.md"

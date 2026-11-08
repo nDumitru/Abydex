@@ -1,6 +1,6 @@
 """AI image -> 3D generation.
 
-Engines are optional and installed on demand (`forja3d engine install triposr`), so the
+Engines are optional and installed on demand (`abydex engine install triposr`), so the
 base app stays small. They run in a separate process to keep RAM usage contained.
 
 TripoSR (MIT, by Tripo AI + Stability AI) works on CPU (~1-3 min per model, ~6-8 GB RAM)
@@ -21,7 +21,7 @@ from pathlib import Path
 from .catalog import user_dir
 
 TRANSFORMERS = "transformers>=4.35,<4.46"  # TripoSR is not compatible with newer releases
-T2I_MODEL = os.environ.get("FORJA3D_T2I_MODEL", "stabilityai/sd-turbo")
+T2I_MODEL = os.environ.get("ABYDEX_T2I_MODEL", "stabilityai/sd-turbo")
 
 ENGINES = {
     "triposr": {
@@ -107,10 +107,10 @@ def generate(image: str | Path, out_path: str | Path, engine: str = "triposr",
              resolution: int = 256, device: str = "auto", remove_bg: bool = True) -> Path:
     """Run the engine in a subprocess. Returns the path of the generated mesh."""
     if not is_installed(engine):
-        raise RuntimeError(f"Motorul '{engine}' nu e instalat. Ruleaza: forja3d engine install {engine}")
+        raise RuntimeError(f"Motorul '{engine}' nu e instalat. Ruleaza: abydex engine install {engine}")
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    cmd = [sys.executable, "-m", "forja3d.engines.triposr_runner", str(image), str(out_path),
+    cmd = [sys.executable, "-m", "abydex.engines.triposr_runner", str(image), str(out_path),
            "--engine-dir", str(engine_dir(engine)), "--resolution", str(resolution),
            "--device", device]
     if not remove_bg:
@@ -126,12 +126,12 @@ def text_to_image(prompt: str, out_path: str | Path, steps: int = 2, seed: int |
     """Text -> product-style image (plain background), ready for image -> 3D."""
     if not is_installed("sdturbo"):
         raise RuntimeError("Motorul text -> imagine nu e instalat. Instaleaza-l din tab-ul 'Motoare AI' "
-                           "sau: forja3d engine install sdturbo")
+                           "sau: abydex engine install sdturbo")
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     full = (f"{prompt}, single object, whole object visible, centered, plain white background, "
             "studio product photo, soft light, high detail")
-    cmd = [sys.executable, "-m", "forja3d.engines.sdturbo_runner", full, str(out_path),
+    cmd = [sys.executable, "-m", "abydex.engines.sdturbo_runner", full, str(out_path),
            "--model", T2I_MODEL, "--steps", str(steps), "--device", device]
     if seed is not None:
         cmd += ["--seed", str(seed)]

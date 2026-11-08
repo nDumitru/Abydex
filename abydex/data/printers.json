@@ -1,5 +1,5 @@
 {
-  "_info": "Date aproximative din fise tehnice. Poti adauga imprimanta ta in fisierul printers.json din folderul de date al aplicatiei (vezi 'forja3d info').",
+  "_info": "Date aproximative din fise tehnice. Poti adauga imprimanta ta in fisierul printers.json din folderul de date al aplicatiei (vezi 'abydex info').",
   "bambu_a1": {
     "name": "Bambu Lab A1", "technology": "fdm", "slicer": "bambu",
     "volume_mm": [256, 256, 256], "nozzle_max": 300, "bed_max": 100,

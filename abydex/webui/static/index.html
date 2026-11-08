@@ -3,17 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Forja3D</title>
+<title>Abydex</title>
+<link rel="icon" type="image/svg+xml" href="/static/abydex.svg">
+<link rel="icon" type="image/png" sizes="256x256" href="/static/abydex-256.png">
 <link rel="stylesheet" href="/static/style.css">
 <script type="importmap">{"imports": {"three": "/static/vendor/three.module.min.js"}}</script>
 </head>
 <body>
 <header>
-  <div class="logo">Forja<span>3D</span></div>
+  <div class="logo"><img src="/static/abydex.svg" alt=""><b>Aby<em>dex</em></b></div>
   <nav>
     <button class="tab active" data-tab="work">Pregătire print</button>
     <button class="tab" data-tab="history">Istoric și învățare</button>
     <button class="tab" data-tab="engines">Motoare AI</button>
+    <button class="tab" data-tab="settings">Setări AI</button>
   </nav>
   <a id="update" class="update" target="_blank" rel="noopener" hidden></a>
   <div id="version" class="muted"></div>
@@ -63,7 +66,7 @@
 
   <section class="panel right" id="result">
     <p class="muted">Încarcă un model și alege imprimanta + materialul.<br><br>
-      Forja3D repară modelul, îl orientează, recomandă setările și <b>învață din fiecare print</b>
+      Abydex repară modelul, îl orientează, recomandă setările și <b>învață din fiecare print</b>
       pe care îl evaluezi.</p>
   </section>
 </main>
@@ -74,6 +77,41 @@
     <table id="histTable"><thead><tr>
       <th>#</th><th>Piesă</th><th>Imprimantă</th><th>Material</th><th>Rezultat</th><th></th>
     </tr></thead><tbody></tbody></table>
+  </section>
+</main>
+
+<main id="tab-settings" class="tabpage">
+  <section class="panel wide settings">
+    <h2>AI pentru înțelegerea textului</h2>
+    <p class="muted">Piesele tehnice (cutii, suporturi, plăci...) merg și fără AI. Un model AI înțelege în plus piese libere
+      („flanșă rotundă cu 6 găuri pe cerc”). Alegi un model local gratuit (Ollama) sau un serviciu online cu cheia ta API.</p>
+    <div class="form">
+      <label>Furnizor <select id="llmProvider"></select></label>
+      <label>Model <input id="llmModel"></label>
+      <label id="llmUrlBox">Adresă server <input id="llmUrl"></label>
+      <label id="llmKeyBox">Cheie API <input id="llmKey" type="password" autocomplete="off"></label>
+      <div class="row-btn"><a id="llmLink" target="_blank" rel="noopener"></a>
+        <button class="chip" id="llmKeyDel" hidden>Șterge cheia salvată</button></div>
+    </div>
+    <h2 style="margin-top:22px">3D în cloud pentru obiecte decorative <span class="muted small">(opțional)</span></h2>
+    <p class="muted">Pe un calculator fără placă video puternică, figurinele și obiectele decorative se generează mai rapid
+      în cloud. Fără serviciu ales, se folosesc motoarele locale (tab-ul „Motoare AI”).</p>
+    <div class="form">
+      <label>Serviciu <select id="c3Provider"><option value="">Niciunul (local)</option></select></label>
+      <label id="c3ModelBox">Model <input id="c3Model"></label>
+      <label id="c3KeyBox">Cheie API <input id="c3Key" type="password" autocomplete="off"></label>
+      <div class="row-btn"><a id="c3Link" target="_blank" rel="noopener"></a>
+        <button class="chip" id="c3KeyDel" hidden>Șterge cheia salvată</button></div>
+    </div>
+    <div class="row-btn" style="margin-top:18px">
+      <button class="primary" id="saveSettings">Salvează</button>
+      <button class="chip" id="testLlm">Testează AI-ul de text</button>
+    </div>
+    <div id="settingsMsg" class="muted"></div>
+    <p class="muted small" style="margin-top:18px">🔒 Cheile se salvează doar pe calculatorul tău (fișierul settings.json din
+      folderul de date) și nu sunt trimise nicăieri altundeva decât la furnizorul ales. Când folosești un serviciu online,
+      descrierea piesei se trimite la el, iar costurile sunt cele ale furnizorului. Numele modelelor se schimbă des:
+      dacă un model nu mai există, scrie numele actual de pe site-ul furnizorului.</p>
   </section>
 </main>
 

@@ -4,7 +4,7 @@ labels: [bug]
 body:
   - type: input
     id: version
-    attributes: { label: Versiune Forja3D, placeholder: "forja3d --version, ex: 0.1.0" }
+    attributes: { label: Versiune Abydex, placeholder: "abydex --version, ex: 0.1.0" }
     validations: { required: true }
   - type: dropdown
     id: os

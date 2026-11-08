@@ -80,16 +80,23 @@ def text_to_3d(text: str, printer_id: str, material_id: str, layer_height: float
 
         image = None
         if design.get("organic"):
-            missing = [k for k in ("sdturbo", "triposr") if not generate.is_installed(k)]
-            if missing:
-                raise RuntimeError(
-                    "Pentru obiecte decorative instaleaza motoarele AI din tab-ul 'Motoare AI' "
-                    f"(sau: {' si '.join('forja3d engine install ' + m for m in missing)}). "
-                    "Piesele tehnice (cutii, suporturi, placi...) merg si fara ele.")
-            log("Generez imaginea din descriere...")
-            image = generate.text_to_image(text, work / f"{stamp}_{base}.png")
-            log("Transform imaginea in model 3D...")
-            mesh_path = generate.generate(image, work / f"{stamp}_{base}.obj")
+            from . import cloud3d, settings
+            cloud = settings.cloud3d_config()
+            if cloud and cloud.get("key"):  # the user chose a cloud 3D service
+                mesh_path = cloud3d.text_to_3d(text, work / f"{stamp}_{base}.glb", cloud, log=log)
+                design = {**design, "source": f"cloud ({cloud['provider']})"}
+            else:
+                missing = [k for k in ("sdturbo", "triposr") if not generate.is_installed(k)]
+                if missing:
+                    raise RuntimeError(
+                        "Pentru obiecte decorative instaleaza motoarele AI din tab-ul 'Motoare AI' "
+                        f"(sau: {' si '.join('abydex engine install ' + m for m in missing)}), "
+                        "sau alege un serviciu 3D in cloud (Meshy / Tripo) in 'Setari AI'. "
+                        "Piesele tehnice (cutii, suporturi, placi...) merg si fara ele.")
+                log("Generez imaginea din descriere...")
+                image = generate.text_to_image(text, work / f"{stamp}_{base}.png")
+                log("Transform imaginea in model 3D...")
+                mesh_path = generate.generate(image, work / f"{stamp}_{base}.obj")
             r = prepare_job(mesh_path, printer_id, material_id, layer_height, nozzle, size_mm or 60.0,
                             name or text[:40], out_dir, orient=True, memory=mem)
         else:

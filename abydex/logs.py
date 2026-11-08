@@ -10,12 +10,12 @@ _done = False
 
 
 def log_path():
-    return user_dir() / "forja3d.log"
+    return user_dir() / "abydex.log"
 
 
 def setup() -> logging.Logger:
     global _done
-    log = logging.getLogger("forja3d")
+    log = logging.getLogger("abydex")
     if not _done:
         h = logging.handlers.RotatingFileHandler(log_path(), maxBytes=2_000_000, backupCount=2, encoding="utf-8")
         h.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))

@@ -5,6 +5,21 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-08
+
+### Schimbat
+- **Proiectul se numeste acum Abydex** (fost Forja3D), cu sigla noua: un portal din circuite, cu o piramida printata
+  strat cu strat. Comanda devine `abydex`, iar repo-ul `nDumitru/abydex`.
+- Update-ul peste Forja3D se face pe loc: installerul Windows inlocuieste versiunea veche si scurtaturile ei,
+  iar datele (memoria printurilor, profilele, motoarele AI, setarile) se copiaza automat in folderul Abydex.
+
+### Adaugat
+- **AI la alegere** (tab-ul *Setari AI*): Ollama local sau, cu cheia ta, Anthropic Claude, OpenAI, Google Gemini,
+  Mistral, DeepSeek, Groq, OpenRouter ori orice server compatibil OpenAI, pentru intelegerea pieselor libere.
+- **3D in cloud** pentru obiecte decorative: Meshy si Tripo, utile pe PC-uri fara placa video puternica.
+- Butonul *Testeaza AI-ul de text*; `abydex doctor` arata furnizorul ales (fara sa trimita cereri platite).
+- Iconuri pentru installer, scurtaturi si interfata.
+
 ## [0.2.0] - 2026-11-08
 
 ### Adaugat
@@ -41,6 +56,7 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 - Migrari versionate ale bazei de date (cu backup automat) si verificare de versiune noua.
 - Installer Windows (fara Python, fara admin), script de instalare Linux, build automat prin GitHub Actions.
 
-[Unreleased]: https://github.com/nDumitru/forja3d/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/nDumitru/abydex/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/nDumitru/abydex/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/nDumitru/forja3d/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/nDumitru/forja3d/releases/tag/v0.1.0

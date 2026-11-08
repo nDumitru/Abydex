@@ -5,13 +5,13 @@ import urllib.request
 import pytest
 import trimesh
 
-from forja3d import advisor, catalog, exporters, mesh_tools, workflow
-from forja3d.memory import Memory
+from abydex import advisor, catalog, exporters, mesh_tools, workflow
+from abydex.memory import Memory
 
 
 @pytest.fixture(autouse=True)
 def home(tmp_path, monkeypatch):
-    monkeypatch.setenv("FORJA3D_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ABYDEX_HOME", str(tmp_path / "home"))
     catalog.printers.cache_clear()
     catalog.materials.cache_clear()
     yield tmp_path
@@ -110,7 +110,7 @@ def test_bambu_export(tee_stl, tmp_path):
 
 
 def test_web_api(tee_stl):
-    from forja3d.webui.server import make_server
+    from abydex.webui.server import make_server
     srv = make_server(0)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     base = f"http://127.0.0.1:{srv.server_address[1]}"
@@ -124,7 +124,7 @@ def test_web_api(tee_stl):
         stl = urllib.request.urlopen(f"{base}/api/file?job={r['job_id']}").read()
         assert len(stl) > 1000
         with pytest.raises(urllib.error.HTTPError):
-            urllib.request.urlopen(f"{base}/api/file?job={r['job_id']}&name=../../forja3d.db")
+            urllib.request.urlopen(f"{base}/api/file?job={r['job_id']}&name=../../abydex.db")
         fb = urllib.request.Request(base + "/api/feedback", method="POST",
                                     data=json.dumps({"job_id": r["job_id"], "outcome": "ok"}).encode())
         assert json.load(urllib.request.urlopen(fb))["ok"]

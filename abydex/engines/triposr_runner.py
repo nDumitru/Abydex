@@ -55,7 +55,7 @@ def main(argv=None) -> int:
     if device == "auto":
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
     t0 = time.time()
-    print(f"[forja3d] Incarc modelul TripoSR pe {device}...", flush=True)
+    print(f"[abydex] Incarc modelul TripoSR pe {device}...", flush=True)
     model = TSR.from_pretrained("stabilityai/TripoSR", config_name="config.yaml", weight_name="model.ckpt")
     model.renderer.set_chunk_size(8192)
     model.to(device)
@@ -71,7 +71,7 @@ def main(argv=None) -> int:
         arr = arr[:, :, :3] * arr[:, :, 3:4] + (1 - arr[:, :, 3:4]) * 0.5
         img = Image.fromarray((arr * 255.0).astype(np.uint8))
 
-    print("[forja3d] Generez forma 3D...", flush=True)
+    print("[abydex] Generez forma 3D...", flush=True)
     with torch.no_grad():
         codes = model([img], device=device)
         meshes = model.extract_mesh(codes, False, resolution=a.resolution)
@@ -80,7 +80,7 @@ def main(argv=None) -> int:
     mesh.apply_transform([[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
     Path(a.output).parent.mkdir(parents=True, exist_ok=True)
     mesh.export(a.output)
-    print(f"[forja3d] Gata in {time.time() - t0:.0f}s: {a.output}", flush=True)
+    print(f"[abydex] Gata in {time.time() - t0:.0f}s: {a.output}", flush=True)
     return 0
 
 

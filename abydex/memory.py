@@ -64,7 +64,13 @@ SCHEMA_VERSION = len(MIGRATIONS)
 
 class Memory:
     def __init__(self, path: str | Path | None = None):
-        self.path = Path(path) if path else user_dir() / "forja3d.db"
+        if path:
+            self.path = Path(path)
+        else:
+            self.path = user_dir() / "abydex.db"
+            old = self.path.with_name("forja3d.db")  # database of Forja3D (the name before v0.3.0)
+            if not self.path.exists() and old.exists():
+                shutil.copy2(old, self.path)
         self.db = sqlite3.connect(self.path)
         self.db.row_factory = sqlite3.Row
         self._migrate()
@@ -73,7 +79,7 @@ class Memory:
         current = self.db.execute("PRAGMA user_version").fetchone()[0]
         target = len(MIGRATIONS)
         if current > target:
-            raise RuntimeError("Baza de date e dintr-o versiune mai noua de Forja3D. Actualizeaza aplicatia.")
+            raise RuntimeError("Baza de date e dintr-o versiune mai noua de Abydex. Actualizeaza aplicatia.")
         if current == target:
             return
         if current > 0 and self.path.exists():

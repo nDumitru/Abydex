@@ -1,4 +1,4 @@
-"""Forja3D command line."""
+"""Abydex command line."""
 from __future__ import annotations
 
 import argparse
@@ -57,7 +57,7 @@ def _print_result(r: dict):
     _out("\nFisiere:")
     for f in r["files"]:
         _out(f"  {f}")
-    _out(f"\nDupa print spune-mi cum a iesit:  forja3d feedback {r['job_id']} --ok   "
+    _out(f"\nDupa print spune-mi cum a iesit:  abydex feedback {r['job_id']} --ok   "
          f"sau  --fail --issues warping,stringing")
 
 
@@ -178,7 +178,7 @@ def cmd_update(a):
     from . import updates
     r = updates.check(force=True)
     if r.get("disabled"):
-        _out("Verificarea de update e dezactivata (FORJA3D_NO_UPDATE_CHECK).")
+        _out("Verificarea de update e dezactivata (ABYDEX_NO_UPDATE_CHECK).")
     elif r.get("error"):
         _out(f"Nu am putut verifica: {r['error']}")
     elif not r.get("latest"):
@@ -195,13 +195,13 @@ def cmd_ui(a):
 
 
 def cmd_info(a):
-    _out(f"Forja3D {__version__}")
+    _out(f"Abydex {__version__}")
     _out(f"Folder date: {catalog.user_dir()}")
     _out("Poti adauga imprimante/materiale proprii in printers.json / materials.json din acel folder.")
 
 
 def build_parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(prog="forja3d", description="Forja3D - AI local pentru printare 3D")
+    ap = argparse.ArgumentParser(prog="abydex", description="Abydex - AI local pentru printare 3D")
     ap.add_argument("--version", action="version", version=__version__)
     sub = ap.add_subparsers(dest="cmd")
 
@@ -238,7 +238,7 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--ok", action="store_true")
     g.add_argument("--partial", action="store_true")
     g.add_argument("--fail", action="store_true")
-    p.add_argument("--issues", help="ex: warping,stringing (vezi: forja3d issues)")
+    p.add_argument("--issues", help="ex: warping,stringing (vezi: abydex issues)")
     p.add_argument("--rating", type=int, choices=range(1, 6))
     p.add_argument("--notes")
     p.add_argument("--set", action="append", metavar="CHEIE=VALOARE",
@@ -312,6 +312,6 @@ def main(argv=None) -> int:
     except Exception as e:  # unexpected: keep the full traceback in the log
         log.exception("comanda %s a esuat", a.cmd)
         _out(f"Eroare neasteptata: {type(e).__name__}: {e}\nDetalii in {logs.log_path()} "
-             f"- ruleaza 'forja3d doctor' si trimite rezultatul pe GitHub.")
+             f"- ruleaza 'abydex doctor' si trimite rezultatul pe GitHub.")
         return 1
     return 0

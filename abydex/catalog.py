@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import sys
 from functools import lru_cache
 from pathlib import Path
@@ -10,15 +11,26 @@ from pathlib import Path
 DATA_DIR = Path(__file__).parent / "data"
 
 
+def _default_dir(app: str) -> Path:
+    if sys.platform == "win32":
+        return Path(os.environ.get("APPDATA", Path.home())) / app
+    return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / app.lower()
+
+
 def user_dir() -> Path:
-    """Per-user data folder (database, models, custom printers)."""
-    env = os.environ.get("FORJA3D_HOME")
-    if env:
-        p = Path(env)
-    elif sys.platform == "win32":
-        p = Path(os.environ.get("APPDATA", Path.home())) / "Forja3D"
-    else:
-        p = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / "forja3d"
+    """Per-user data folder (database, models, custom printers).
+
+    Abydex was called Forja3D before v0.3.0: an existing Forja3D folder is copied over once,
+    so the learned memory, custom profiles and AI engines are kept."""
+    env = os.environ.get("ABYDEX_HOME") or os.environ.get("FORJA3D_HOME")
+    p = Path(env) if env else _default_dir("Abydex")
+    if not env and not p.exists():
+        old = _default_dir("Forja3D")
+        if old.is_dir():
+            shutil.copytree(old, p, dirs_exist_ok=True)
+            (p / "MUTAT_DIN_FORJA3D.txt").write_text(
+                f"Datele au fost copiate din {old} (Forja3D) la prima pornire a Abydex.\n"
+                "Dupa ce verifici ca totul e in regula, poti sterge folderul vechi.\n", encoding="utf-8")
     p.mkdir(parents=True, exist_ok=True)
     return p
 
@@ -55,14 +67,14 @@ def materials() -> dict:
 def get_printer(pid: str) -> dict:
     p = printers().get(pid)
     if p is None:
-        raise KeyError(f"Imprimanta necunoscuta: '{pid}'. Vezi lista cu: forja3d printers")
+        raise KeyError(f"Imprimanta necunoscuta: '{pid}'. Vezi lista cu: abydex printers")
     return {**p, "id": pid}
 
 
 def get_material(mid: str) -> dict:
     m = materials().get(mid)
     if m is None:
-        raise KeyError(f"Material necunoscut: '{mid}'. Vezi lista cu: forja3d materials")
+        raise KeyError(f"Material necunoscut: '{mid}'. Vezi lista cu: abydex materials")
     return m
 
 

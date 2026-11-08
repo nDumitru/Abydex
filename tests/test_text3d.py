@@ -5,15 +5,15 @@ import urllib.request
 
 import pytest
 
-from forja3d import catalog, csg, templates, textcad, workflow
-from forja3d.memory import Memory
+from abydex import catalog, csg, llm, templates, textcad, workflow
+from abydex.memory import Memory
 
 
 @pytest.fixture(autouse=True)
 def home(tmp_path, monkeypatch):
-    monkeypatch.setenv("FORJA3D_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("FORJA3D_NO_UPDATE_CHECK", "1")
-    monkeypatch.setattr(textcad, "ollama_models", lambda timeout=1.5: None)  # no LLM unless a test says so
+    monkeypatch.setenv("ABYDEX_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ABYDEX_NO_UPDATE_CHECK", "1")
+    monkeypatch.setattr(llm, "ollama_models", lambda *a, **k: None)  # no LLM unless a test says so
     catalog.printers.cache_clear(); catalog.materials.cache_clear()
     yield tmp_path
 
@@ -86,14 +86,15 @@ class _Resp(io.BytesIO):
 
 
 def _fake_ollama(monkeypatch, answer: dict | str):
-    monkeypatch.setattr(textcad, "ollama_models", lambda timeout=1.5: ["qwen2.5-coder:3b"])
+    monkeypatch.setattr(llm, "ollama_models", lambda *a, **k: ["qwen2.5-coder:3b"])
     seen = {}
 
     def urlopen(req, timeout=None):
+        seen["url"] = req.full_url
         seen["body"] = json.loads(req.data)
         raw = answer if isinstance(answer, str) else json.dumps(answer)
-        return _Resp(json.dumps({"response": raw}).encode())
-    monkeypatch.setattr(textcad.urllib.request, "urlopen", urlopen)
+        return _Resp(json.dumps({"message": {"content": raw}}).encode())
+    monkeypatch.setattr(llm.urllib.request, "urlopen", urlopen)
     return seen
 
 
@@ -101,7 +102,8 @@ def test_llm_template_answer(monkeypatch):
     seen = _fake_ollama(monkeypatch, {"template": "spacer", "params": {"outer": 30, "inner": 8, "height": 4}})
     d = textcad.understand("un inel pentru rulment 608")
     assert d["source"] == "llm" and d["template"] == "spacer" and d["params"]["outer"] == 30
-    assert seen["body"]["format"] == "json"
+    assert seen["body"]["format"] == "json" and seen["url"].endswith("/api/chat")
+    assert seen["body"]["messages"][0]["role"] == "system"
 
 
 def test_llm_free_csg_answer(monkeypatch):
@@ -150,7 +152,7 @@ def test_organic_without_engines_gives_clear_error():
 
 
 def test_web_text3d_api():
-    from forja3d.webui.server import make_server
+    from abydex.webui.server import make_server
     srv = make_server(0)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     base = f"http://127.0.0.1:{srv.server_address[1]}"

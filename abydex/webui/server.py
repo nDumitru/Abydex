@@ -27,7 +27,7 @@ def _uploads() -> Path:
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = f"Forja3D/{__version__}"
+    server_version = f"Abydex/{__version__}"
 
     def log_message(self, fmt, *args):  # quieter console
         pass
@@ -111,9 +111,15 @@ class Handler(BaseHTTPRequestHandler):
                     "templates": templates.describe(),
                 })
             if u.path == "/api/llm":
-                from .. import textcad
-                ms = textcad.ollama_models()
-                return self._json({"running": ms is not None, "models": ms or [], "default": textcad.DEFAULT_LLM})
+                from .. import llm, settings
+                cfg = settings.llm_config()
+                cloud = settings.cloud3d_config()
+                return self._json({"provider": cfg["provider"], "label": cfg["label"], "model": cfg["model"],
+                                   "local": cfg["kind"] == "ollama", "ready": llm.available(cfg),
+                                   "cloud3d": cloud["provider"] if cloud and cloud.get("key") else None})
+            if u.path == "/api/settings":
+                from .. import settings
+                return self._json(settings.public_view())
             if u.path == "/api/update":
                 from .. import updates
                 return self._json(updates.check())
@@ -170,6 +176,17 @@ class Handler(BaseHTTPRequestHandler):
                                         float(d["size"]) if d.get("size") else None, d.get("use_llm", True),
                                         log=lambda m: None)
                 return self._json(r)
+            if u.path == "/api/settings":
+                from .. import settings
+                return self._json(settings.update(json.loads(self._body() or b"{}")))
+            if u.path == "/api/settings/test":
+                from .. import llm, settings, textcad
+                cfg = settings.llm_config()
+                if not llm.available(cfg):
+                    raise ValueError(f"{cfg['label']}: " + ("Ollama nu ruleaza pe acest calculator."
+                                                            if cfg["kind"] == "ollama" else "lipseste cheia API."))
+                d = textcad.parse_llm("cutie 60x40x25 cu capac", cfg=cfg)
+                return self._json({"ok": True, "provider": cfg["label"], "model": cfg["model"], "answer": d})
             if u.path == "/api/feedback":
                 d = json.loads(self._body() or b"{}")
                 mem = Memory()
@@ -184,7 +201,7 @@ class Handler(BaseHTTPRequestHandler):
                 generate.install(q.get("name", "triposr"), log=log.append)
                 return self._json({"ok": True, "log": log})
             return self._json({"error": "nu exista"}, 404)
-        except (KeyError, ValueError, RuntimeError) as e:
+        except (KeyError, ValueError, RuntimeError) as e:  # includes LLMError / Cloud3DError
             msg = e.args[0] if isinstance(e, KeyError) and e.args else str(e)
             logs.setup().warning("%s: %s", self.path, msg)
             return self._json({"error": str(msg)}, 400)
@@ -201,7 +218,7 @@ def make_server(port: int = 8765) -> ThreadingHTTPServer:
 def serve(port: int = 8765, open_browser: bool = True) -> None:
     log = logs.setup()
     srv = None
-    for p in range(port, port + 20):  # another program (or a second Forja3D) may use the port
+    for p in range(port, port + 20):  # another program (or a second Abydex) may use the port
         try:
             srv = make_server(p)
             break
@@ -211,7 +228,7 @@ def serve(port: int = 8765, open_browser: bool = True) -> None:
         raise RuntimeError(f"Nu gasesc niciun port liber intre {port} si {port + 19}.")
     log.info("UI pornit pe portul %s", srv.server_address[1])
     url = f"http://127.0.0.1:{srv.server_address[1]}/"
-    print(f"Forja3D ruleaza la {url}  (Ctrl+C pentru oprire)")
+    print(f"Abydex ruleaza la {url}  (Ctrl+C pentru oprire)")
     if open_browser:
         threading.Timer(0.8, lambda: webbrowser.open(url)).start()
     try:

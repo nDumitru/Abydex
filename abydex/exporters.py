@@ -74,7 +74,7 @@ def export_slicer(rec: Recommendation, out_dir: Path, part_name: str) -> list[Pa
     files: list[Path] = []
     if p["technology"] != "fdm":
         return files
-    tag = f"Forja3D {m['name']} - {part_name}"
+    tag = f"Abydex {m['name']} - {part_name}"
     slicer = p.get("slicer", "orca")
     if slicer == "bambu":
         fam = m["family"]
@@ -86,7 +86,7 @@ def export_slicer(rec: Recommendation, out_dir: Path, part_name: str) -> list[Pa
             files.append(fp)
             proc_base = bambu_process_base(rec)
             if proc_base:
-                pname = f"Forja3D {part_name} {proc_base}"
+                pname = f"Abydex {part_name} {proc_base}"
                 pp = out_dir / f"{_slug(pname)}.process.json"
                 pp.write_text(json.dumps(_bambu_orca_process(rec, pname, proc_base), indent=2), encoding="utf-8")
                 files.append(pp)
@@ -104,7 +104,7 @@ def export_slicer(rec: Recommendation, out_dir: Path, part_name: str) -> list[Pa
 def _prusa_ini(rec: Recommendation, path: Path) -> Path:
     s = rec.settings
     lines = [
-        "# Forja3D - profil filament PrusaSlicer (File > Import > Import Config)",
+        "# Abydex - profil filament PrusaSlicer (File > Import > Import Config)",
         f"filament_type = {rec.material['family']}",
         f"temperature = {s['nozzle_temp']}",
         f"first_layer_temperature = {s['nozzle_temp_first']}",
@@ -131,10 +131,10 @@ def _fmt(k, v) -> str:
 
 def settings_sheet(rec: Recommendation, analysis: dict | None, part_name: str, job_id: int | None) -> str:
     p, m = rec.printer, rec.material
-    out = [f"# Forja3D - {part_name}", "",
+    out = [f"# Abydex - {part_name}", "",
            f"**Imprimanta:** {p['name']}  ", f"**Material:** {m['name']}  "]
     if job_id:
-        out.append(f"**Job:** #{job_id} (dupa print: `forja3d feedback {job_id} ...`)  ")
+        out.append(f"**Job:** #{job_id} (dupa print: `abydex feedback {job_id} ...`)  ")
     if analysis:
         d = analysis["dims_mm"]
         out += ["", "## Piesa", f"- Dimensiuni: {d[0]} x {d[1]} x {d[2]} mm"]

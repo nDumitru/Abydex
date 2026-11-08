@@ -1,7 +1,7 @@
-"""Check GitHub Releases for a newer Forja3D version.
+"""Check GitHub Releases for a newer Abydex version.
 
 Only the public release list is requested (no personal data is sent). Results are cached
-for 24h. Disable with the environment variable FORJA3D_NO_UPDATE_CHECK=1.
+for 24h. Disable with the environment variable ABYDEX_NO_UPDATE_CHECK=1.
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import urllib.request
 from . import __version__
 from .catalog import user_dir
 
-REPO = "nDumitru/forja3d"
+REPO = "nDumitru/abydex"
 API = f"https://api.github.com/repos/{REPO}/releases/latest"
 RELEASES_URL = f"https://github.com/{REPO}/releases"
 CACHE_SECONDS = 24 * 3600
@@ -36,7 +36,7 @@ def is_newer(latest: str, current: str = __version__) -> bool:
 
 def check(force: bool = False, timeout: float = 4.0) -> dict:
     """Returns {"current", "latest", "update_available", "url", "notes"} or {"disabled": True}."""
-    if os.environ.get("FORJA3D_NO_UPDATE_CHECK"):
+    if os.environ.get("ABYDEX_NO_UPDATE_CHECK"):
         return {"current": __version__, "disabled": True, "update_available": False}
     cache = user_dir() / "update_check.json"
     data = None
@@ -50,7 +50,7 @@ def check(force: bool = False, timeout: float = 4.0) -> dict:
     if data is None:
         try:
             req = urllib.request.Request(API, headers={"Accept": "application/vnd.github+json",
-                                                       "User-Agent": f"Forja3D/{__version__}"})
+                                                       "User-Agent": f"Abydex/{__version__}"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 rel = json.load(r)
             data = {"checked": time.time(), "latest": rel.get("tag_name", ""),

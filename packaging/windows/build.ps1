@@ -1,4 +1,4 @@
-# Builds build\app : embedded Python + Forja3D + dependencies (no system Python needed on the user's PC).
+# Builds build\app : embedded Python + Abydex + dependencies (no system Python needed on the user's PC).
 # Usage (from repo root, with Python 3.12 x64 on PATH):  powershell -File packaging\windows\build.ps1
 $ErrorActionPreference = "Stop"
 $PyVer = "3.12.8"
@@ -28,11 +28,11 @@ foreach ($dll in "msvcp140.dll", "msvcp140_1.dll", "msvcp140_2.dll", "concrt140.
 if (-not (Test-Path (Join-Path $Py "msvcp140.dll"))) { throw "msvcp140.dll lipseste din pachet" }
 
 # launchers (CRLF line endings for cmd.exe)
-foreach ($pair in @(@("Forja3D.cmd", "$App\Forja3D.cmd"), @("forja3d-cli.cmd", "$App\bin\forja3d.cmd"))) {
+foreach ($pair in @(@("Abydex.cmd", "$App\Abydex.cmd"), @("abydex-cli.cmd", "$App\bin\abydex.cmd"))) {
   $text = (Get-Content -Raw (Join-Path $PSScriptRoot $pair[0])) -replace "`r?`n", "`r`n"
   [IO.File]::WriteAllText($pair[1], $text, (New-Object Text.ASCIIEncoding))
 }
-Copy-Item "$Root\LICENSE", "$Root\README.md", "$Root\CHANGELOG.md" $App
+Copy-Item "$Root\LICENSE", "$Root\README.md", "$Root\CHANGELOG.md", "$Root\abydex\webui\static\abydex.ico" $App
 
-& "$Py\python.exe" -m forja3d --version
+& "$Py\python.exe" -m abydex --version
 Write-Host "OK: $App"
