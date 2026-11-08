@@ -1,0 +1,87 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pytest -q
+
+  windows-installer:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build app folder (embedded Python)
+        run: powershell -ExecutionPolicy Bypass -File packaging\windows\build.ps1
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $v = python -c "import re;print(re.search(r'__version__ = \"(.+?)\"', open('forja3d/__init__.py').read()).group(1))"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DAppVersion=$v" packaging\windows\Forja3D.iss
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/*.exe
+
+  linux-package:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build wheel + Linux bundle
+        run: |
+          python -m pip install build
+          python -m build
+          V=$(python -c "import re;print(re.search(r'__version__ = \"(.+?)\"', open('forja3d/__init__.py').read()).group(1))")
+          mkdir -p bundle/forja3d-$V
+          git archive HEAD | tar -x -C bundle/forja3d-$V
+          tar -czf dist/forja3d-$V-linux.tar.gz -C bundle forja3d-$V
+          # smoke test the installer script
+          FORJA3D_SRC="$PWD" bash packaging/linux/install.sh
+          ~/.local/bin/forja3d --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-and-wheel
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows-installer, linux-package]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true

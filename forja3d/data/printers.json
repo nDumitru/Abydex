@@ -1,0 +1,77 @@
+{
+  "_info": "Date aproximative din fise tehnice. Poti adauga imprimanta ta in fisierul printers.json din folderul de date al aplicatiei (vezi 'forja3d info').",
+  "bambu_a1": {
+    "name": "Bambu Lab A1", "technology": "fdm", "slicer": "bambu",
+    "volume_mm": [256, 256, 256], "nozzle_max": 300, "bed_max": 100,
+    "extruder": "direct", "enclosed": false, "retraction_mm": 0.8,
+    "bambu_machine": "Bambu Lab A1 {nozzle} nozzle", "bambu_suffix": " @BBL A1",
+    "bambu_generic": ["PLA", "PLA-CF", "PETG", "PETG-CF", "ABS", "ASA", "TPU", "PA", "PC"]
+  },
+  "bambu_a1_mini": {
+    "name": "Bambu Lab A1 mini", "technology": "fdm", "slicer": "bambu",
+    "volume_mm": [180, 180, 180], "nozzle_max": 300, "bed_max": 80,
+    "extruder": "direct", "enclosed": false, "retraction_mm": 0.8,
+    "bambu_machine": "Bambu Lab A1 mini {nozzle} nozzle", "bambu_suffix": " @BBL A1M",
+    "bambu_generic": ["PLA", "PLA-CF", "PETG", "TPU"]
+  },
+  "bambu_p1s": {
+    "name": "Bambu Lab P1S", "technology": "fdm", "slicer": "bambu",
+    "volume_mm": [256, 256, 256], "nozzle_max": 300, "bed_max": 100,
+    "extruder": "direct", "enclosed": true, "retraction_mm": 0.8,
+    "bambu_machine": "Bambu Lab P1S {nozzle} nozzle", "bambu_suffix": "",
+    "bambu_generic": ["PLA", "PETG", "ABS", "ASA", "TPU", "PA", "PC"]
+  },
+  "bambu_x1c": {
+    "name": "Bambu Lab X1 Carbon", "technology": "fdm", "slicer": "bambu",
+    "volume_mm": [256, 256, 256], "nozzle_max": 300, "bed_max": 110,
+    "extruder": "direct", "enclosed": true, "retraction_mm": 0.8,
+    "bambu_machine": "Bambu Lab X1 Carbon {nozzle} nozzle", "bambu_suffix": "",
+    "bambu_generic": ["PLA", "PETG", "ABS", "ASA", "TPU", "PA", "PC"]
+  },
+  "prusa_mk4": {
+    "name": "Prusa MK4/MK4S", "technology": "fdm", "slicer": "prusa",
+    "volume_mm": [250, 210, 220], "nozzle_max": 290, "bed_max": 120,
+    "extruder": "direct", "enclosed": false, "retraction_mm": 0.7
+  },
+  "prusa_core_one": {
+    "name": "Prusa CORE One", "technology": "fdm", "slicer": "prusa",
+    "volume_mm": [250, 220, 270], "nozzle_max": 290, "bed_max": 120,
+    "extruder": "direct", "enclosed": true, "retraction_mm": 0.7
+  },
+  "creality_k1": {
+    "name": "Creality K1 / K1C", "technology": "fdm", "slicer": "orca",
+    "volume_mm": [220, 220, 250], "nozzle_max": 300, "bed_max": 100,
+    "extruder": "direct", "enclosed": true, "retraction_mm": 0.8
+  },
+  "creality_ender3_v3": {
+    "name": "Creality Ender-3 V3 / V3 SE", "technology": "fdm", "slicer": "orca",
+    "volume_mm": [220, 220, 250], "nozzle_max": 260, "bed_max": 100,
+    "extruder": "direct", "enclosed": false, "retraction_mm": 0.8
+  },
+  "generic_direct": {
+    "name": "FDM generica (direct drive)", "technology": "fdm", "slicer": "orca",
+    "volume_mm": [220, 220, 250], "nozzle_max": 260, "bed_max": 100,
+    "extruder": "direct", "enclosed": false, "retraction_mm": 0.8
+  },
+  "generic_bowden": {
+    "name": "FDM generica (bowden)", "technology": "fdm", "slicer": "orca",
+    "volume_mm": [220, 220, 250], "nozzle_max": 260, "bed_max": 100,
+    "extruder": "bowden", "enclosed": false, "retraction_mm": 5.0
+  },
+  "elegoo_saturn4_ultra": {
+    "name": "Elegoo Saturn 4 Ultra", "technology": "resin",
+    "volume_mm": [218, 122, 220], "exposure_factor": 1.0
+  },
+  "elegoo_mars5": {
+    "name": "Elegoo Mars 5", "technology": "resin",
+    "volume_mm": [143, 89, 150], "exposure_factor": 1.0
+  },
+  "generic_resin": {
+    "name": "Rasina MSLA generica (mono LCD)", "technology": "resin",
+    "volume_mm": [190, 120, 200], "exposure_factor": 1.0
+  },
+  "generic_sls": {
+    "name": "SLS / MJF (serviciu de printare)", "technology": "sls",
+    "volume_mm": [300, 300, 300]
+  }
+}

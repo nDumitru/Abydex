@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forja3D</title>
+<link rel="stylesheet" href="/static/style.css">
+<script type="importmap">{"imports": {"three": "/static/vendor/three.module.min.js"}}</script>
+</head>
+<body>
+<header>
+  <div class="logo">Forja<span>3D</span></div>
+  <nav>
+    <button class="tab active" data-tab="work">Pregătire print</button>
+    <button class="tab" data-tab="history">Istoric și învățare</button>
+    <button class="tab" data-tab="engines">Motoare AI</button>
+  </nav>
+  <div id="version" class="muted"></div>
+</header>
+
+<main id="tab-work" class="tabpage active">
+  <section class="panel left">
+    <div class="seg">
+      <button class="segbtn active" data-src="model">Am un model 3D</button>
+      <button class="segbtn" data-src="image">Poză → 3D (AI)</button>
+    </div>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept=".stl,.obj,.ply,.3mf,.glb,.off">
+      <span id="dropText">Trage aici un fișier STL / OBJ / 3MF<br><small>sau apasă ca să alegi</small></span>
+    </label>
+
+    <label>Imprimantă <select id="printer"></select></label>
+    <label>Material <select id="material"></select></label>
+    <div class="row">
+      <label>Strat (mm) <input id="layer" type="number" step="0.02" min="0.02" max="0.6" value="0.2"></label>
+      <label class="fdm-only">Duză (mm) <input id="nozzle" type="number" step="0.2" min="0.2" max="1.2" value="0.4"></label>
+    </div>
+    <div class="row">
+      <label>Mărime max. (mm) <input id="size" type="number" placeholder="neschimbat"></label>
+      <label>Nume <input id="name" placeholder="din fișier"></label>
+    </div>
+    <button id="go" class="primary" disabled>Pregătește pentru print</button>
+    <div id="status" class="muted"></div>
+  </section>
+
+  <section class="panel viewer">
+    <div id="view"></div>
+    <div id="dims" class="overlay muted"></div>
+  </section>
+
+  <section class="panel right" id="result">
+    <p class="muted">Încarcă un model și alege imprimanta + materialul.<br><br>
+      Forja3D repară modelul, îl orientează, recomandă setările și <b>învață din fiecare print</b>
+      pe care îl evaluezi.</p>
+  </section>
+</main>
+
+<main id="tab-history" class="tabpage">
+  <section class="panel wide">
+    <div id="stats"></div>
+    <table id="histTable"><thead><tr>
+      <th>#</th><th>Piesă</th><th>Imprimantă</th><th>Material</th><th>Rezultat</th><th></th>
+    </tr></thead><tbody></tbody></table>
+  </section>
+</main>
+
+<main id="tab-engines" class="tabpage">
+  <section class="panel wide" id="engines"></section>
+</main>
+
+<template id="feedbackTpl">
+  <div class="feedback">
+    <h3>Cum a ieșit printul?</h3>
+    <div class="outcomes">
+      <button data-o="ok" class="ok">✅ Reușit</button>
+      <button data-o="partial" class="partial">⚠️ Cu probleme</button>
+      <button data-o="fail" class="fail">❌ Eșuat</button>
+    </div>
+    <div class="issues"></div>
+    <label>Notă (1-5) <input type="range" min="1" max="5" value="4" class="rating"></label>
+    <details><summary>Am schimbat setări în slicer</summary>
+      <div class="actual"></div>
+    </details>
+    <textarea placeholder="Observații (opțional)" class="notes"></textarea>
+    <button class="primary send">Salvează feedback</button>
+    <div class="fbmsg muted"></div>
+  </div>
+</template>
+
+<script type="module" src="/static/app.js"></script>
+</body>
+</html>

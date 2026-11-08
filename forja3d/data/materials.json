@@ -1,0 +1,128 @@
+{
+  "_info": "Valori de pornire universale. Intervalele sunt [min, implicit, max]. Aplicatia le adapteaza la imprimanta si le corecteaza din istoricul printurilor.",
+  "fdm": {
+    "pla": {
+      "name": "PLA", "family": "PLA",
+      "nozzle_temp": [190, 215, 230], "bed_temp": [45, 55, 65],
+      "fan_min": 100, "fan_max": 100, "overhang_fan": 100, "no_fan_first_layers": 1,
+      "retraction_factor": 1.0, "flow_ratio": 0.98, "max_volumetric_speed": 21,
+      "warp_risk": 0, "needs_enclosure": false, "enclosure_bad": true,
+      "dry": [50, 8], "min_wall_mm": 0.8,
+      "notes": "Cel mai usor material. Daca imprimanta e inchisa, deschide usa/capacul ca sa nu se infunde duza (heat creep)."
+    },
+    "pla_cf": {
+      "name": "PLA-CF", "family": "PLA-CF",
+      "nozzle_temp": [210, 220, 240], "bed_temp": [45, 55, 65],
+      "fan_min": 100, "fan_max": 100, "overhang_fan": 100, "no_fan_first_layers": 1,
+      "retraction_factor": 1.0, "flow_ratio": 0.96, "max_volumetric_speed": 15,
+      "warp_risk": 0, "needs_enclosure": false, "enclosure_bad": true,
+      "dry": [55, 8], "min_wall_mm": 1.0, "hardened_nozzle": true,
+      "notes": "Abraziv: foloseste duza din otel calit."
+    },
+    "petg": {
+      "name": "PETG", "family": "PETG",
+      "nozzle_temp": [230, 245, 260], "bed_temp": [65, 75, 85],
+      "fan_min": 30, "fan_max": 60, "overhang_fan": 90, "no_fan_first_layers": 3,
+      "retraction_factor": 1.1, "flow_ratio": 0.95, "max_volumetric_speed": 12,
+      "warp_risk": 1, "needs_enclosure": false, "enclosure_bad": false,
+      "dry": [65, 8], "min_wall_mm": 0.8,
+      "notes": "Se lipeste foarte tare de PEI neted - foloseste placa texturata sau adeziv (lipici) ca separator."
+    },
+    "petg_cf": {
+      "name": "PETG-CF", "family": "PETG-CF",
+      "nozzle_temp": [240, 255, 270], "bed_temp": [65, 75, 85],
+      "fan_min": 20, "fan_max": 50, "overhang_fan": 80, "no_fan_first_layers": 3,
+      "retraction_factor": 1.1, "flow_ratio": 0.95, "max_volumetric_speed": 10,
+      "warp_risk": 1, "needs_enclosure": false, "enclosure_bad": false,
+      "dry": [65, 8], "min_wall_mm": 1.0, "hardened_nozzle": true,
+      "notes": "Abraziv: foloseste duza din otel calit."
+    },
+    "abs": {
+      "name": "ABS", "family": "ABS",
+      "nozzle_temp": [240, 260, 280], "bed_temp": [90, 100, 110],
+      "fan_min": 0, "fan_max": 30, "overhang_fan": 60, "no_fan_first_layers": 3,
+      "retraction_factor": 1.0, "flow_ratio": 0.95, "max_volumetric_speed": 20,
+      "warp_risk": 3, "needs_enclosure": true, "enclosure_bad": false,
+      "dry": [80, 4], "min_wall_mm": 1.0, "fumes": true,
+      "notes": "Emana vapori (stiren): printeaza intr-o camera aerisita."
+    },
+    "asa": {
+      "name": "ASA", "family": "ASA",
+      "nozzle_temp": [240, 260, 280], "bed_temp": [90, 100, 110],
+      "fan_min": 0, "fan_max": 30, "overhang_fan": 60, "no_fan_first_layers": 3,
+      "retraction_factor": 1.0, "flow_ratio": 0.95, "max_volumetric_speed": 18,
+      "warp_risk": 3, "needs_enclosure": true, "enclosure_bad": false,
+      "dry": [80, 4], "min_wall_mm": 1.0, "fumes": true,
+      "notes": "Rezistent UV, ideal pentru exterior. Se crapa intre straturi daca se raceste prea repede - ventilator minim, fara curent de aer."
+    },
+    "tpu": {
+      "name": "TPU 95A", "family": "TPU",
+      "nozzle_temp": [210, 225, 240], "bed_temp": [30, 40, 60],
+      "fan_min": 50, "fan_max": 100, "overhang_fan": 100, "no_fan_first_layers": 1,
+      "retraction_factor": 0.5, "flow_ratio": 1.0, "max_volumetric_speed": 3.5,
+      "warp_risk": 0, "needs_enclosure": false, "enclosure_bad": false,
+      "dry": [55, 8], "min_wall_mm": 1.2, "direct_drive_only": true,
+      "notes": "Flexibil: printeaza incet. Nu merge prin AMS / tub lung."
+    },
+    "pa": {
+      "name": "PA (Nylon)", "family": "PA",
+      "nozzle_temp": [250, 270, 290], "bed_temp": [80, 90, 100],
+      "fan_min": 0, "fan_max": 40, "overhang_fan": 60, "no_fan_first_layers": 3,
+      "retraction_factor": 1.0, "flow_ratio": 0.96, "max_volumetric_speed": 12,
+      "warp_risk": 2, "needs_enclosure": true, "enclosure_bad": false,
+      "dry": [80, 12], "min_wall_mm": 1.0, "very_hygroscopic": true,
+      "notes": "Absoarbe umezeala foarte repede: usuca-l inainte si printeaza din cutie uscata."
+    },
+    "pc": {
+      "name": "PC", "family": "PC",
+      "nozzle_temp": [260, 275, 300], "bed_temp": [90, 105, 115],
+      "fan_min": 0, "fan_max": 30, "overhang_fan": 50, "no_fan_first_layers": 3,
+      "retraction_factor": 1.0, "flow_ratio": 0.95, "max_volumetric_speed": 12,
+      "warp_risk": 3, "needs_enclosure": true, "enclosure_bad": false,
+      "dry": [80, 8], "min_wall_mm": 1.0,
+      "notes": "Necesita temperaturi mari si incinta incalzita."
+    }
+  },
+  "resin": {
+    "resin_standard": {
+      "name": "Rasina standard", "family": "Standard",
+      "exposure_s": 2.5, "bottom_exposure_s": 30, "bottom_layers": 5,
+      "lift_mm": 6, "lift_speed_mm_min": 60, "retract_speed_mm_min": 150,
+      "layer_height_mm": 0.05, "min_wall_mm": 0.6, "drain_hole_mm": 3.0,
+      "warp_risk": 0, "cure_min": 3,
+      "notes": "Valorile de expunere difera mult intre rasini - fa un test de calibrare (ex. RERF / Cones of Calibration)."
+    },
+    "resin_abs_like": {
+      "name": "Rasina ABS-like", "family": "ABS-like",
+      "exposure_s": 3.0, "bottom_exposure_s": 35, "bottom_layers": 5,
+      "lift_mm": 6, "lift_speed_mm_min": 60, "retract_speed_mm_min": 150,
+      "layer_height_mm": 0.05, "min_wall_mm": 0.8, "drain_hole_mm": 3.0,
+      "warp_risk": 0, "cure_min": 4,
+      "notes": "Mai tenace decat rasina standard, potrivita pentru piese functionale."
+    },
+    "resin_water_washable": {
+      "name": "Rasina lavabila cu apa", "family": "Water washable",
+      "exposure_s": 2.8, "bottom_exposure_s": 30, "bottom_layers": 5,
+      "lift_mm": 6, "lift_speed_mm_min": 60, "retract_speed_mm_min": 150,
+      "layer_height_mm": 0.05, "min_wall_mm": 0.8, "drain_hole_mm": 3.5,
+      "warp_risk": 0, "cure_min": 3,
+      "notes": "Nu turna apa de spalare la canal - las-o la soare, filtreaz-o si arunc-o ca deseu."
+    },
+    "resin_flexible": {
+      "name": "Rasina flexibila", "family": "Flexible",
+      "exposure_s": 4.0, "bottom_exposure_s": 40, "bottom_layers": 6,
+      "lift_mm": 8, "lift_speed_mm_min": 40, "retract_speed_mm_min": 100,
+      "layer_height_mm": 0.05, "min_wall_mm": 1.2, "drain_hole_mm": 4.0,
+      "warp_risk": 0, "cure_min": 2,
+      "notes": "Ridicare lenta - piesa se deformeaza usor la dezlipirea de pe FEP."
+    }
+  },
+  "sls": {
+    "pa12_sls": {
+      "name": "PA12 (SLS/MJF)", "family": "PA12",
+      "min_wall_mm": 0.8, "escape_hole_mm": 5.0, "shrink_xy_pct": 3.0, "shrink_z_pct": 3.5,
+      "warp_risk": 1,
+      "notes": "Nu are nevoie de suporturi. Golurile inchise trebuie sa aiba gauri de evacuare a pulberii."
+    }
+  }
+}

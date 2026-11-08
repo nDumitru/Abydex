@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forja3d"
+dynamic = ["version"]
+description = "Asistent AI local pentru printare 3D: poza -> 3D, reparare, orientare si setari pe material care invata din fiecare print."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "Forja3D contributors" }]
+keywords = ["3d-printing", "slicer", "ai", "stl", "triposr", "bambu", "orcaslicer"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Topic :: Multimedia :: Graphics :: 3D Modeling",
+]
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.10",
+  "trimesh>=4.0",
+  "rtree>=1.0",
+  "networkx>=3.0",
+  "lxml>=4.9",
+  "manifold3d>=2.4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+forja3d = "forja3d.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/OWNER/forja3d"
+
+[tool.setuptools.dynamic]
+version = { attr = "forja3d.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["forja3d*"]
+
+[tool.setuptools.package-data]
+forja3d = ["data/*.json", "webui/static/*", "webui/static/vendor/*"]
