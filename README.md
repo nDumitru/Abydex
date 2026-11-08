@@ -37,13 +37,13 @@ Descarcă `Forja3D-Setup-x.y.z.exe` din [Releases](../../releases) și rulează-
 
 ### Linux
 ```bash
-curl -fsSL https://raw.githubusercontent.com/OWNER/forja3d/main/packaging/linux/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/nechitadumitru/forja3d/main/packaging/linux/install.sh | bash
 ```
 sau din arhiva din Releases: `./packaging/linux/install.sh`. Apoi pornești cu `forja3d ui`.
 
 ### Din sursă (dezvoltatori)
 ```bash
-git clone https://github.com/OWNER/forja3d && cd forja3d
+git clone https://github.com/nechitadumitru/forja3d && cd forja3d
 python -m pip install -e ".[dev]"
 python -m pytest
 forja3d ui
