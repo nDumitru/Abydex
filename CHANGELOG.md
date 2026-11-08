@@ -20,7 +20,10 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 - Butonul *Testeaza AI-ul de text*; `abydex doctor` arata furnizorul ales (fara sa trimita cereri platite).
 - Iconuri pentru installer, scurtaturi si interfata.
 
-## [0.2.0] - 2026-11-08
+## 0.2.0 - 2026-11-08 (versiune de dezvoltare)
+
+_Versiunile 0.1.0 si 0.2.0 au fost etape de dezvoltare, inainte de numele Abydex; nu mai sunt publicate.
+Prima versiune publica este 0.3.0._
 
 ### Adaugat
 - **Text -> 3D**: descrierea in romana sau engleza devine piesa gata de print. 6 sabloane parametrice
@@ -43,7 +46,7 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 - Build-ul de Windows e testat automat ca pe un PC real: porneste aplicatia instalata, genereaza o piesa
   si verifica interfata.
 
-## [0.1.0] - 2026-11-08
+## 0.1.0 - 2026-11-08 (versiune de dezvoltare)
 
 ### Adaugat
 - Reparare mesh: fragmente plutitoare, corpuri suprapuse unite, gauri inchise, normale reparate.
@@ -57,6 +60,4 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 - Installer Windows (fara Python, fara admin), script de instalare Linux, build automat prin GitHub Actions.
 
 [Unreleased]: https://github.com/nDumitru/abydex/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/nDumitru/abydex/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/nDumitru/abydex/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/nDumitru/abydex/releases/tag/v0.1.0
+[0.3.0]: https://github.com/nDumitru/abydex/releases/tag/v0.3.0

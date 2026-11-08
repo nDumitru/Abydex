@@ -27,7 +27,7 @@ def current_version() -> str:
 
 def notes(version: str) -> str:
     text = CHANGELOG.read_text(encoding="utf-8")
-    m = re.search(rf"^## \[{re.escape(version)}\][^\n]*\n(.*?)(?=^## \[|^\[[^\]]+\]: |\Z)", text, re.S | re.M)
+    m = re.search(rf"^## \[{re.escape(version)}\][^\n]*\n(.*?)(?=^## |^\[[^\]]+\]: |\Z)", text, re.S | re.M)
     return m.group(1).strip() if m else ""
 
 
@@ -38,7 +38,7 @@ def bump(new: str) -> None:
     text = CHANGELOG.read_text(encoding="utf-8")
     if f"## [{new}]" in text:
         sys.exit(f"{new} exista deja in CHANGELOG.md")
-    unreleased = re.search(r"^## \[Unreleased\]\n(.*?)(?=^## \[)", text, re.S | re.M)
+    unreleased = re.search(r"^## \[Unreleased\]\n(.*?)(?=^## )", text, re.S | re.M)
     if not unreleased or not unreleased.group(1).strip():
         sys.exit("Sectiunea [Unreleased] din CHANGELOG.md e goala - noteaza intai ce s-a schimbat.")
     today = datetime.date.today().isoformat()
