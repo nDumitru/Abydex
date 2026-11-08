@@ -46,9 +46,18 @@ CREATE INDEX IF NOT EXISTS jobs_pm ON jobs(printer_id, material_id);
 # Database migrations. NEVER edit an entry that was released - only append new ones.
 # Index i upgrades the database from user_version i to i+1. A backup is made before upgrading,
 # so what the app has learned survives every update.
-# Example of a future entry:  "ALTER TABLE jobs ADD COLUMN photo_path TEXT;",   # schema 2 (v0.2.0)
 MIGRATIONS: list[str] = [
     SCHEMA,  # schema 1 (v0.1.0)
+    # schema 2 (v0.2.0): text -> 3D requests and the designs built from them
+    """CREATE TABLE IF NOT EXISTS text_designs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        job_id INTEGER REFERENCES jobs(id),
+        prompt TEXT NOT NULL,
+        design_json TEXT NOT NULL,
+        source TEXT,
+        created REAL NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS text_designs_job ON text_designs(job_id);""",
 ]
 SCHEMA_VERSION = len(MIGRATIONS)
 
@@ -122,6 +131,21 @@ class Memory:
             "WHERE id=?",
             (outcome, rating, json.dumps(issues or []), notes, time.time(), json.dumps(settings), job_id))
         self.db.commit()
+
+    def add_text_design(self, job_id: int | None, prompt: str, design: dict, source: str = "") -> int:
+        keep = {k: v for k, v in design.items() if k in ("template", "params", "csg", "organic")}
+        cur = self.db.execute("INSERT INTO text_designs(job_id,prompt,design_json,source,created) VALUES (?,?,?,?,?)",
+                              (job_id, prompt, json.dumps(keep), source, time.time()))
+        self.db.commit()
+        return cur.lastrowid
+
+    def good_text_designs(self, limit: int = 50) -> list[dict]:
+        """Requests whose printed result was rated good - used as examples / for reuse."""
+        rows = self.db.execute(
+            "SELECT t.prompt, t.design_json FROM text_designs t JOIN jobs j ON j.id=t.job_id "
+            "WHERE j.outcome='ok' AND COALESCE(j.rating, 4) >= 4 ORDER BY j.feedback_at DESC LIMIT ?",
+            (limit,)).fetchall()
+        return [{"prompt": r["prompt"], "design": json.loads(r["design_json"])} for r in rows]
 
     # ------------------------------------------------------------ reads
     def _job(self, r: sqlite3.Row) -> dict:

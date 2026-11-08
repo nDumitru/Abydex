@@ -5,7 +5,7 @@ import { OrbitControls } from "/static/vendor/OrbitControls.js";
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-let CAT = null, source = "model", file = null;
+let CAT = null, source = "model", file = null, design = null;
 
 // ------------------------------------------------------------------ viewer
 const view = $("#view");
@@ -80,6 +80,7 @@ async function init() {
   if (saved.nozzle) $("#nozzle").value = saved.nozzle;
   for (const id of ["material", "layer", "nozzle"]) $("#" + id).onchange = persist;
   renderEngines();
+  initText();
   api("/api/update").then((u) => {
     if (!u.update_available) return;
     const a = $("#update");
@@ -106,6 +107,9 @@ function persist() {
 $$(".segbtn").forEach((b) => (b.onclick = () => {
   $$(".segbtn").forEach((x) => x.classList.toggle("active", x === b));
   source = b.dataset.src; file = null; $("#go").disabled = true;
+  $("#drop").hidden = source === "text";
+  $("#textBox").hidden = source !== "text";
+  if (source === "text") { $("#go").disabled = !$("#prompt").value.trim(); $("#name").placeholder = "din descriere"; return; }
   const inp = $("#file");
   if (source === "image") {
     inp.accept = ".png,.jpg,.jpeg,.webp";
@@ -133,7 +137,87 @@ async function pick(f) {
   }
 }
 
+// ------------------------------------------------------------------ text -> 3D
+const EXAMPLES = ["cutie 80x50x30 cu capac, perete 2 mm", "suport L 50x40x20 cu găuri M4",
+  "distanțier diametru 12 interior 5.5 înălțime 15", "placă 100x60x3 cu 4 găuri M3", "cârlig de perete lățime 25",
+  "organizator 150x100x40 cu 4x3 compartimente"];
+function initText() {
+  for (const ex of EXAMPLES) {
+    const c = document.createElement("button"); c.className = "chip"; c.textContent = ex;
+    c.onclick = () => { $("#prompt").value = ex; design = null; $("#design").innerHTML = ""; $("#go").disabled = false; };
+    $("#examples").appendChild(c);
+  }
+  $("#prompt").oninput = () => {
+    design = null; $("#design").innerHTML = "";
+    if (source === "text") $("#go").disabled = !$("#prompt").value.trim();
+  };
+  api("/api/llm").then((l) => {
+    $("#llmInfo").textContent = l.running
+      ? `AI text local activ (Ollama: ${l.models.join(", ") || "fără modele"}) – înțelege și piese libere.`
+      : "Piesele tehnice merg fără internet și fără placă video. Pentru piese libere poți instala Ollama (opțional).";
+  }).catch(() => {});
+}
+
+function templateDefaults(name) {
+  return Object.fromEntries(Object.entries(CAT.templates[name].params).map(([k, p]) => [k, p.default]));
+}
+
+function renderDesign(d) {
+  const box = $("#design");
+  if (!d || !d.template) {
+    box.innerHTML = d && d.csg ? "<h4>Piesă construită de AI (CSG)</h4>"
+      : d && d.organic ? "<h4>Obiect decorativ (imagine → 3D)</h4>" : "";
+    return;
+  }
+  const T = CAT.templates;
+  let h = `<h4>Am înțeles: <select id="tplSel">${Object.entries(T).map(([k, t]) =>
+    `<option value="${k}" ${k === d.template ? "selected" : ""}>${esc(t.label)}</option>`).join("")}</select></h4><div class="grid">`;
+  for (const [k, p] of Object.entries(T[d.template].params))
+    h += `<span>${esc(p.label)}</span><input type="number" step="any" data-p="${k}" min="${p.min}" max="${p.max}" value="${d.params?.[k] ?? p.default}">`;
+  h += "</div>" + (d.notes || []).map((n) => `<div class="reason small">• ${esc(n)}</div>`).join("") +
+    `<div class="muted small">Sursa: ${esc(d.source || "")}. Modifică valorile și apasă din nou butonul de mai jos.</div>`;
+  box.innerHTML = h;
+  const sync = () => {
+    const params = {};
+    $$("input[data-p]", box).forEach((i) => (params[i.dataset.p] = +i.value));
+    design = { template: $("#tplSel").value, params, source: "manual" };
+  };
+  $$("input[data-p]", box).forEach((i) => (i.onchange = sync));
+  $("#tplSel").onchange = () => {
+    const t = $("#tplSel").value;
+    design = { template: t, params: templateDefaults(t), source: "manual" };
+    renderDesign(design);
+  };
+}
+
+async function goText() {
+  const body = { text: $("#prompt").value, mode: $("#mode").value, printer: $("#printer").value,
+    material: $("#material").value, layer: $("#layer").value, nozzle: $("#nozzle").value,
+    size: $("#size").value, name: $("#name").value, design };
+  $("#status").textContent = $("#mode").value === "organic"
+    ? "Generez imaginea și apoi modelul 3D... pe procesor durează câteva minute."
+    : "Construiesc piesa și calculez setările...";
+  const r = await api("/api/text3d", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body) });
+  design = r.design.template ? { template: r.design.template, params: r.design.params, source: r.design.source } : null;
+  renderDesign(r.design);
+  return r;
+}
+
 $("#go").onclick = async () => {
+  if (source === "text") {
+    $("#go").disabled = true;
+    try {
+      const r = await goText();
+      const stl = await fetch(`/api/file?job=${r.job_id}`).then((x) => x.arrayBuffer());
+      showMesh(stl, false);
+      renderResult(r);
+      $("#status").textContent = "";
+    } catch (e) {
+      $("#status").innerHTML = `<span style="color:var(--bad)">Eroare: ${esc(e.message)}</span>`;
+    } finally { $("#go").disabled = false; }
+    return;
+  }
   if (!file) return;
   const q = new URLSearchParams({ filename: file.name, printer: $("#printer").value, material: $("#material").value,
     layer: $("#layer").value, nozzle: $("#nozzle").value, size: $("#size").value, name: $("#name").value });
@@ -160,6 +244,10 @@ function renderResult(r) {
   let h = `<h2>${esc(r.name)} <span class="muted">· job #${r.job_id}</span></h2>
     <div class="muted">${a.dims_mm.join(" × ")} mm · ${a.volume_cm3 ?? "?"} cm³ · console ${(a.overhang_frac * 100).toFixed(1)}%
     ${a.min_wall_mm ? ` · perete min ~${a.min_wall_mm} mm` : ""}</div>`;
+  if (r.image) {
+    const n = r.image.split(/[\\/]/).pop();
+    h += `<img class="preview-img" alt="imaginea generata" src="/api/file?job=${r.job_id}&name=${encodeURIComponent(n)}">`;
+  }
   if (r.repair.removed_fragments || r.repair.holes_filled)
     h += `<div class="reason">🔧 Reparat: ${r.repair.removed_fragments} fragmente șterse${r.repair.holes_filled ? ", găuri umplute" : ""}.</div>`;
   for (const w of [...rec.warnings, ...(r.repair.notes || [])]) h += `<div class="warn">${esc(w)}</div>`;

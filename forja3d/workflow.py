@@ -57,3 +57,61 @@ def prepare_job(model_path: str | Path, printer_id: str, material_id: str,
     finally:
         if own_mem:
             mem.close()
+
+
+def text_to_3d(text: str, printer_id: str, material_id: str, layer_height: float | None = None,
+               nozzle: float = 0.4, name: str | None = None, mode: str = "auto",
+               design: dict | None = None, size_mm: float | None = None, use_llm: bool = True,
+               out_dir: str | Path | None = None, log=print) -> dict:
+    """Text -> design -> mesh -> print-ready job. `design` lets the user override the interpretation
+    (e.g. edited template parameters from the UI)."""
+    from . import generate, templates, textcad
+
+    mem = Memory()
+    try:
+        if design is None:
+            design = textcad.understand(text, mode, use_llm=use_llm, past=mem.good_text_designs())
+        elif "template" in design:
+            design = {**design, "params": templates.clean_params(design["template"], design.get("params") or {})}
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        work = user_dir() / "uploads"
+        work.mkdir(parents=True, exist_ok=True)
+        base = exporters._slug(name or text[:40])
+
+        image = None
+        if design.get("organic"):
+            missing = [k for k in ("sdturbo", "triposr") if not generate.is_installed(k)]
+            if missing:
+                raise RuntimeError(
+                    "Pentru obiecte decorative instaleaza motoarele AI din tab-ul 'Motoare AI' "
+                    f"(sau: {' si '.join('forja3d engine install ' + m for m in missing)}). "
+                    "Piesele tehnice (cutii, suporturi, placi...) merg si fara ele.")
+            log("Generez imaginea din descriere...")
+            image = generate.text_to_image(text, work / f"{stamp}_{base}.png")
+            log("Transform imaginea in model 3D...")
+            mesh_path = generate.generate(image, work / f"{stamp}_{base}.obj")
+            r = prepare_job(mesh_path, printer_id, material_id, layer_height, nozzle, size_mm or 60.0,
+                            name or text[:40], out_dir, orient=True, memory=mem)
+        else:
+            mesh = textcad.build_design(design)
+            if size_mm:
+                mesh.apply_scale(size_mm / float(mesh.extents.max()))
+            mesh_path = work / f"{stamp}_{base}.stl"
+            mesh.export(mesh_path)
+            # templates are designed print-ready; free CSG gets auto-oriented
+            r = prepare_job(mesh_path, printer_id, material_id, layer_height, nozzle, None,
+                            name or text[:40], out_dir, orient="csg" in design, memory=mem)
+        if design.get("template") == "box" and design.get("params", {}).get("lid"):
+            r["repair"]["notes"] = [n for n in r["repair"]["notes"] if "corpuri" not in n] + [
+                "Cutia si capacul sunt doua piese separate, puse una langa alta pe pat."]
+        mem.add_text_design(r["job_id"], text, design, design.get("source", ""))
+        r["design"] = design
+        r["prompt"] = text
+        if image:
+            img_copy = Path(r["output_dir"]) / f"{base}_imagine.png"
+            shutil.copy2(image, img_copy)
+            r["files"].append(str(img_copy))
+            r["image"] = str(img_copy)
+        return r
+    finally:
+        mem.close()

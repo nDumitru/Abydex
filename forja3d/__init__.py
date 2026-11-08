@@ -1,2 +1,2 @@
 """Forja3D - local AI assistant for 3D printing."""
-__version__ = "0.1.0"
+__version__ = "0.2.0"

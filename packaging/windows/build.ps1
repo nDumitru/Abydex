@@ -19,9 +19,20 @@ Set-Content $pth.FullName "python312.zip`r`n.`r`nLib\site-packages`r`nimport sit
 python -m pip install --upgrade pip
 python -m pip install --target "$Py\Lib\site-packages" pip "$Root"
 
-Set-Content "$App\Forja3D.cmd" "@echo off`r`ntitle Forja3D - inchide aceasta fereastra ca sa opresti aplicatia`r`n`"%~dp0python\python.exe`" -m forja3d ui %*"
-Set-Content "$App\bin\forja3d.cmd" "@echo off`r`n`"%~dp0..\python\python.exe`" -m forja3d %*"
-Copy-Item "$Root\LICENSE", "$Root\README.md" $App
+# Microsoft C++ runtime: some packages (rtree, ...) need msvcp140.dll, which is missing on PCs
+# without the "Visual C++ Redistributable". These DLLs are redistributable with the app.
+foreach ($dll in "msvcp140.dll", "msvcp140_1.dll", "msvcp140_2.dll", "concrt140.dll", "vcruntime140.dll", "vcruntime140_1.dll") {
+  $src = Join-Path $env:WINDIR "System32\$dll"
+  if (-not (Test-Path (Join-Path $Py $dll)) -and (Test-Path $src)) { Copy-Item $src $Py }
+}
+if (-not (Test-Path (Join-Path $Py "msvcp140.dll"))) { throw "msvcp140.dll lipseste din pachet" }
+
+# launchers (CRLF line endings for cmd.exe)
+foreach ($pair in @(@("Forja3D.cmd", "$App\Forja3D.cmd"), @("forja3d-cli.cmd", "$App\bin\forja3d.cmd"))) {
+  $text = (Get-Content -Raw (Join-Path $PSScriptRoot $pair[0])) -replace "`r?`n", "`r`n"
+  [IO.File]::WriteAllText($pair[1], $text, (New-Object Text.ASCIIEncoding))
+}
+Copy-Item "$Root\LICENSE", "$Root\README.md", "$Root\CHANGELOG.md" $App
 
 & "$Py\python.exe" -m forja3d --version
 Write-Host "OK: $App"

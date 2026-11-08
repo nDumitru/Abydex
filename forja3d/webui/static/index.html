@@ -23,7 +23,19 @@
   <section class="panel left">
     <div class="seg">
       <button class="segbtn active" data-src="model">Am un model 3D</button>
-      <button class="segbtn" data-src="image">Poză → 3D (AI)</button>
+      <button class="segbtn" data-src="image">Poză → 3D</button>
+      <button class="segbtn" data-src="text">Text → 3D</button>
+    </div>
+    <div id="textBox" hidden>
+      <textarea id="prompt" rows="3" placeholder="ex: cutie 80x50x30 cu capac, perete 2 mm&#10;suport L 50x40x20 cu găuri M4&#10;organizator 150x100x40 cu 4x3 compartimente"></textarea>
+      <div class="examples" id="examples"></div>
+      <label>Tip <select id="mode">
+        <option value="auto">Automat</option>
+        <option value="technical">Piesă tehnică (dimensiuni exacte)</option>
+        <option value="organic">Obiect decorativ (AI imagine → 3D)</option>
+      </select></label>
+      <div id="llmInfo" class="muted small"></div>
+      <div id="design"></div>
     </div>
     <label class="drop" id="drop">
       <input type="file" id="file" accept=".stl,.obj,.ply,.3mf,.glb,.off">

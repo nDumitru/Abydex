@@ -134,6 +134,46 @@ def cmd_generate(a):
         _print_result(r)
 
 
+def cmd_text(a):
+    from . import textcad
+    from .memory import Memory
+    if a.show or not (a.printer and a.material):
+        mem = Memory()
+        d = textcad.understand(a.text, a.mode, use_llm=not a.no_llm, past=mem.good_text_designs())
+        mem.close()
+        _out(json.dumps(d, indent=2, ensure_ascii=False))
+        if not (a.printer and a.material):
+            _out("\nAdauga -p IMPRIMANTA -m MATERIAL ca sa generez si piesa pentru print.")
+        return
+    r = workflow.text_to_3d(a.text, a.printer, a.material, a.layer, a.nozzle, a.name, a.mode,
+                            size_mm=a.size, use_llm=not a.no_llm, log=_out)
+    d = r["design"]
+    _out(f"Interpretare ({d.get('source')}): " + (d.get("template") or ("CSG" if "csg" in d else "obiect decorativ")))
+    if d.get("params"):
+        _out("  " + ", ".join(f"{k}={v}" for k, v in d["params"].items()))
+    for n in d.get("notes", []):
+        _out(f"  - {n}")
+    _print_result(r)
+
+
+def cmd_templates(a):
+    from . import templates
+    for n, t in templates.describe().items():
+        _out(f"{n:10} {t['label']} - {t['description']}")
+        _out("           " + ", ".join(f"{k}={v['default']}" for k, v in t["params"].items()))
+
+
+def cmd_doctor(a):
+    from . import doctor, logs
+    ok, lines = doctor.run()
+    for line in lines:
+        _out(line)
+    _out(f"\nLog: {logs.log_path()}")
+    _out("Totul e in regula." if ok else "Sunt probleme - copiaza textul de mai sus intr-un issue pe GitHub.")
+    if not ok:
+        raise SystemExit(1)
+
+
 def cmd_update(a):
     from . import updates
     r = updates.check(force=True)
@@ -227,6 +267,21 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--name")
     p.set_defaults(fn=cmd_generate)
 
+    p = sub.add_parser("text", help="descriere text -> piesa 3D pregatita pentru print")
+    p.add_argument("text")
+    p.add_argument("-p", "--printer")
+    p.add_argument("-m", "--material")
+    p.add_argument("-l", "--layer", type=float)
+    p.add_argument("--nozzle", type=float, default=0.4)
+    p.add_argument("--mode", choices=["auto", "technical", "organic"], default="auto")
+    p.add_argument("--size", type=float, help="dimensiunea maxima (mm)")
+    p.add_argument("--name")
+    p.add_argument("--no-llm", action="store_true", help="nu folosi Ollama chiar daca ruleaza")
+    p.add_argument("--show", action="store_true", help="arata doar cum a inteles cererea")
+    p.set_defaults(fn=cmd_text)
+
+    sub.add_parser("templates", help="sabloanele de piese tehnice").set_defaults(fn=cmd_templates)
+    sub.add_parser("doctor", help="verifica instalarea (pentru raportare probleme)").set_defaults(fn=cmd_doctor)
     sub.add_parser("update", help="verifica daca exista o versiune noua").set_defaults(fn=cmd_update)
 
     p = sub.add_parser("ui", help="porneste interfata grafica in browser")
@@ -240,12 +295,23 @@ def main(argv=None) -> int:
     ap = build_parser()
     a = ap.parse_args(argv)
     if not getattr(a, "fn", None):
-        cmd_ui(argparse.Namespace(port=8765, no_browser=False))
-        return 0
+        a = ap.parse_args(["ui"])
+    from . import logs
+    log = logs.setup()
     try:
         a.fn(a)
     except (KeyError, ValueError, RuntimeError, FileNotFoundError) as e:
         msg = e.args[0] if isinstance(e, KeyError) and e.args else str(e)
+        log.warning("%s: %s", a.cmd, msg)
         _out(f"Eroare: {msg}")
+        return 1
+    except SystemExit:
+        raise
+    except KeyboardInterrupt:
+        return 130
+    except Exception as e:  # unexpected: keep the full traceback in the log
+        log.exception("comanda %s a esuat", a.cmd)
+        _out(f"Eroare neasteptata: {type(e).__name__}: {e}\nDetalii in {logs.log_path()} "
+             f"- ruleaza 'forja3d doctor' si trimite rezultatul pe GitHub.")
         return 1
     return 0

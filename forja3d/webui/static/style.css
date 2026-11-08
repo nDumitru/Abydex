@@ -57,3 +57,12 @@ td.changed { color:var(--acc); font-weight:700; }
 @media (max-width: 1100px) { .tabpage.active { flex-wrap:wrap; } .viewer { min-height:320px; flex-basis:100%; order:-1; } .left, .right { flex:1; width:auto; } }
 .update { background:var(--acc); color:#111; padding:5px 12px; border-radius:999px; font-weight:700; text-decoration:none; font-size:12px; }
 .update[hidden] { display:none; }
+.small { font-size:12px; }
+.examples { display:flex; flex-wrap:wrap; gap:4px; margin:6px 0; }
+.examples .chip { font-size:12px; }
+#design { margin-top:8px; }
+#design .grid { display:grid; grid-template-columns:1fr 80px; gap:4px 8px; align-items:center; font-size:12px; }
+#design .grid input { padding:5px; }
+#design h4 { margin:8px 0 6px; font-size:13px; }
+.preview-img { width:100%; border-radius:8px; margin-top:8px; border:1px solid var(--line); }
+[hidden] { display:none !important; }

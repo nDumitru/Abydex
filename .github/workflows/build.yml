@@ -34,6 +34,27 @@ jobs:
           python-version: "3.12"
       - name: Build app folder (embedded Python)
         run: powershell -ExecutionPolicy Bypass -File packaging\windows\build.ps1
+      - name: Smoke test the packaged app (like on a user's PC)
+        shell: pwsh
+        run: |
+          $env:FORJA3D_HOME = "$env:RUNNER_TEMP\forja3d-home"
+          $env:FORJA3D_NO_UPDATE_CHECK = "1"
+          $cli = "$PWD\build\app\bin\forja3d.cmd"
+          & $cli doctor; if ($LASTEXITCODE) { exit 1 }
+          & $cli text "cutie 80x50x30 cu capac" -p bambu_a1 -m pla --no-llm; if ($LASTEXITCODE) { exit 1 }
+          $p = Start-Process -PassThru -NoNewWindow "$PWD\build\app\python\python.exe" -ArgumentList "-m","forja3d","ui","--no-browser","--port","8799"
+          $ok = $false
+          foreach ($i in 1..30) {
+            Start-Sleep 1
+            try {
+              $r = Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8799/api/catalog
+              Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8799/ | Out-Null
+              Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8799/static/app.js | Out-Null
+              if ($r.Content -match "bambu_a1") { $ok = $true; break }
+            } catch {}
+          }
+          Stop-Process -Id $p.Id -Force
+          if (-not $ok) { Write-Error "UI did not start"; exit 1 }
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
       - name: Build installer

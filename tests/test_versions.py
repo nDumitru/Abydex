@@ -36,7 +36,7 @@ def test_future_migration_keeps_data_and_makes_backup(tmp_path, monkeypatch):
     assert m.get_job(1)["settings"]["nozzle_temp"] == 210
     assert "photo_path" in m.get_job(1)
     m.close()
-    assert (tmp_path / "b.db.bak-v1").exists()
+    assert (tmp_path / f"b.db.bak-v{len(memory.MIGRATIONS) - 1}").exists()
 
 
 def test_db_from_newer_app_is_refused(tmp_path):

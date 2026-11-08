@@ -5,6 +5,29 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-08
+
+### Adaugat
+- **Text -> 3D**: descrierea in romana sau engleza devine piesa gata de print. 6 sabloane parametrice
+  (cutie cu capac, suport L, distantier/saiba, placa cu gauri, carlig, organizator cu compartimente)
+  cu dimensiuni exacte, intelegerea suruburilor (M3 -> 3.4 mm) si a unitatilor (mm/cm). Merge offline, pe procesor.
+- Parametrii interpretati se pot edita in interfata, apoi piesa se regenereaza.
+- Model AI local optional (Ollama) pentru piese libere, descrise ca geometrie validata (date, nu cod).
+- Obiecte decorative: text -> imagine (SD-Turbo) -> 3D (TripoSR).
+- Invatare: cererile cu print reusit sunt refolosite si date ca exemple modelului AI.
+- `forja3d doctor` (verificarea instalarii), fisier de log, `forja3d templates`, `forja3d text`.
+
+### Schimbat
+- Suportul L si carligul se printeaza culcate, pentru rezistenta la indoire.
+- Interfata isi cauta singura alt port daca 8765 e ocupat.
+
+### Reparat
+- Windows: installerul include acum runtime-ul Microsoft C++ (`msvcp140.dll`), care lipsea pe PC-urile fara
+  "Visual C++ Redistributable".
+- Windows: la o eroare, fereastra nu se mai inchide instant; ruleaza automat diagnosticul si il afiseaza.
+- Build-ul de Windows e testat automat ca pe un PC real: porneste aplicatia instalata, genereaza o piesa
+  si verifica interfata.
+
 ## [0.1.0] - 2026-11-08
 
 ### Adaugat
@@ -18,5 +41,6 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 - Migrari versionate ale bazei de date (cu backup automat) si verificare de versiune noua.
 - Installer Windows (fara Python, fara admin), script de instalare Linux, build automat prin GitHub Actions.
 
-[Unreleased]: https://github.com/nDumitru/forja3d/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/nDumitru/forja3d/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/nDumitru/forja3d/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/nDumitru/forja3d/releases/tag/v0.1.0

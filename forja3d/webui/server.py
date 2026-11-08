@@ -11,7 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
-from .. import __version__, advisor, catalog, generate, workflow
+from .. import __version__, advisor, catalog, generate, logs, templates, workflow
 from ..memory import Memory
 
 STATIC = Path(__file__).parent / "static"
@@ -108,7 +108,12 @@ class Handler(BaseHTTPRequestHandler):
                     "labels": advisor.LABELS,
                     "engines": {k: {**e, "installed": generate.is_installed(k)} for k, e in generate.ENGINES.items()},
                     "data_dir": str(catalog.user_dir()),
+                    "templates": templates.describe(),
                 })
+            if u.path == "/api/llm":
+                from .. import textcad
+                ms = textcad.ollama_models()
+                return self._json({"running": ms is not None, "models": ms or [], "default": textcad.DEFAULT_LLM})
             if u.path == "/api/update":
                 from .. import updates
                 return self._json(updates.check())
@@ -126,6 +131,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": "nu exista"}, 404)
         except Exception as e:  # pragma: no cover
             traceback.print_exc()
+            logs.setup().exception("GET %s", self.path)
             return self._json({"error": str(e)}, 500)
 
     def do_POST(self):
@@ -146,6 +152,24 @@ class Handler(BaseHTTPRequestHandler):
                                          num("nozzle") or 0.4, num("size") or 50.0,
                                          q.get("name") or Path(unquote(q.get("filename", "model"))).stem)
                 return self._json(r)
+            if u.path in ("/api/text/parse", "/api/text3d"):
+                from .. import textcad
+                d = json.loads(self._body() or b"{}")
+                if u.path == "/api/text/parse":
+                    mem = Memory()
+                    try:
+                        past = mem.good_text_designs()
+                    finally:
+                        mem.close()
+                    return self._json(textcad.understand(d.get("text", ""), d.get("mode", "auto"),
+                                                         use_llm=d.get("use_llm", True), past=past))
+                r = workflow.text_to_3d(d.get("text", ""), d["printer"], d["material"],
+                                        float(d["layer"]) if d.get("layer") else None,
+                                        float(d.get("nozzle") or 0.4), d.get("name") or None,
+                                        d.get("mode", "auto"), d.get("design"),
+                                        float(d["size"]) if d.get("size") else None, d.get("use_llm", True),
+                                        log=lambda m: None)
+                return self._json(r)
             if u.path == "/api/feedback":
                 d = json.loads(self._body() or b"{}")
                 mem = Memory()
@@ -162,10 +186,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": "nu exista"}, 404)
         except (KeyError, ValueError, RuntimeError) as e:
             msg = e.args[0] if isinstance(e, KeyError) and e.args else str(e)
+            logs.setup().warning("%s: %s", self.path, msg)
             return self._json({"error": str(msg)}, 400)
         except Exception as e:  # pragma: no cover
             traceback.print_exc()
-            return self._json({"error": str(e)}, 500)
+            logs.setup().exception("POST %s", self.path)
+            return self._json({"error": f"{type(e).__name__}: {e} (detalii in {logs.log_path()})"}, 500)
 
 
 def make_server(port: int = 8765) -> ThreadingHTTPServer:
@@ -173,7 +199,17 @@ def make_server(port: int = 8765) -> ThreadingHTTPServer:
 
 
 def serve(port: int = 8765, open_browser: bool = True) -> None:
-    srv = make_server(port)
+    log = logs.setup()
+    srv = None
+    for p in range(port, port + 20):  # another program (or a second Forja3D) may use the port
+        try:
+            srv = make_server(p)
+            break
+        except OSError:
+            continue
+    if srv is None:
+        raise RuntimeError(f"Nu gasesc niciun port liber intre {port} si {port + 19}.")
+    log.info("UI pornit pe portul %s", srv.server_address[1])
     url = f"http://127.0.0.1:{srv.server_address[1]}/"
     print(f"Forja3D ruleaza la {url}  (Ctrl+C pentru oprire)")
     if open_browser:
