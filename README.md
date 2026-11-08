@@ -101,7 +101,7 @@ Creează `printers.json` sau `materials.json` în folderul de date (`abydex info
 
 | Pentru | Opțiuni |
 |---|---|
-| Înțelegerea textului | **Ollama** (local, gratuit, offline: instalezi [Ollama](https://ollama.com), apoi rulezi `ollama pull qwen2.5-coder:3b`) · **Anthropic Claude** · **OpenAI** · **Google Gemini** · **Mistral** · **DeepSeek** · **Groq** · **OpenRouter** · orice server compatibil OpenAI (LM Studio, vLLM) |
+| Înțelegerea textului | **Ollama** (local, gratuit, offline: instalezi [Ollama](https://ollama.com), apoi rulezi `ollama pull qwen2.5-coder:3b`) · **llamafile / llama.cpp** (local, gratuit: pornești serverul, de obicei pe `http://127.0.0.1:8080`, și îl alegi în Setări AI) · **Anthropic Claude** · **OpenAI** · **Google Gemini** · **Mistral** · **DeepSeek** · **Groq** · **OpenRouter** · orice server compatibil OpenAI (LM Studio, vLLM) |
 | Obiecte decorative în cloud | **Meshy** · **Tripo**: mai rapide decât generarea locală pe un PC fără placă video |
 
 - Cheile API rămân doar pe calculatorul tău (`settings.json` în folderul de date) și nu apar niciodată în interfață. Variabilele de mediu (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `MESHY_API_KEY`, `TRIPO_API_KEY`...) au prioritate.

@@ -358,13 +358,13 @@ function refreshLlmInfo() {
 function fillSettingsForm() {
   const lp = SET.llm_providers[$("#llmProvider").value];
   $("#llmModel").placeholder = lp.model || "numele modelului";
-  $("#llmUrlBox").hidden = !(lp.kind === "ollama" || $("#llmProvider").value === "custom");
+  $("#llmUrlBox").hidden = !lp.local;
   $("#llmUrl").placeholder = lp.base_url;
-  $("#llmKeyBox").hidden = lp.kind === "ollama";
+  $("#llmKeyBox").hidden = lp.local && $("#llmProvider").value !== "custom";
   const has = SET.key_set[$("#llmProvider").value];
   $("#llmKey").placeholder = has ? "cheie salvată ✓ (scrie alta ca s-o înlocuiești)" : "lipește cheia aici";
-  $("#llmKeyDel").hidden = !has || lp.kind === "ollama";
-  $("#llmLink").textContent = lp.url ? (lp.kind === "ollama" ? "Descarcă Ollama ↗" : "Obține o cheie API ↗") : "";
+  $("#llmKeyDel").hidden = !has;
+  $("#llmLink").textContent = lp.url ? (lp.local ? "Descarcă ↗" : "Obține o cheie API ↗") : "";
   $("#llmLink").href = lp.url || "#";
   const c3 = $("#c3Provider").value, cp = SET.cloud3d_providers[c3];
   for (const id of ["#c3ModelBox", "#c3KeyBox"]) $(id).hidden = !c3;

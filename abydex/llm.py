@@ -56,7 +56,8 @@ def _http_json(url: str, body: dict, headers: dict, timeout: float = TIMEOUT) ->
 
 def parse_json_text(text: str) -> dict:
     """JSON from model text (tolerates ```json fences or text around the object)."""
-    text = (text or "").strip()
+    # reasoning models (Qwen3, DeepSeek-R1...) may think out loud before the answer
+    text = re.sub(r"<think>.*?</think>", "", text or "", flags=re.S).strip()
     try:
         return json.loads(text)
     except ValueError:
@@ -81,9 +82,21 @@ def available(cfg: dict | None = None) -> bool:
     cfg = cfg or settings.llm_config()
     if cfg["kind"] == "ollama":
         return ollama_models(cfg["base_url"]) is not None
-    if cfg["provider"] == "custom":
-        return bool(cfg["base_url"] and cfg["model"])
+    if cfg.get("local"):  # llamafile / llama.cpp / LM Studio: is the server running?
+        return bool(cfg["base_url"]) and _openai_server_up(cfg["base_url"], cfg.get("key"))
     return bool(cfg["key"])
+
+
+def _openai_server_up(base_url: str, key: str | None = None, timeout: float = 1.5) -> bool:
+    req = urllib.request.Request(base_url.rstrip("/") + "/models",
+                                 headers={"Authorization": f"Bearer {key}"} if key else {})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout):
+            return True
+    except urllib.error.HTTPError:
+        return True   # something answers on that address (e.g. a server without /models)
+    except Exception:
+        return False
 
 
 def ollama_models(base_url: str = "http://127.0.0.1:11434", timeout: float = 1.5) -> list[str] | None:
@@ -106,7 +119,7 @@ def complete_json(system: str, user: str, cfg: dict | None = None) -> dict:
     if kind == "anthropic":
         return from_envelope(_anthropic(system, user, cfg))
     if kind == "openai":
-        if not cfg["key"] and cfg["provider"] != "custom":
+        if not cfg["key"] and not cfg.get("local"):
             raise LLMError(f"Lipseste cheia API pentru {cfg['label']} (Setari AI).")
         headers = {"Authorization": f"Bearer {cfg['key']}"} if cfg["key"] else {}
         if cfg["provider"] == "openrouter":

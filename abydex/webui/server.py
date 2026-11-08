@@ -115,7 +115,7 @@ class Handler(BaseHTTPRequestHandler):
                 cfg = settings.llm_config()
                 cloud = settings.cloud3d_config()
                 return self._json({"provider": cfg["provider"], "label": cfg["label"], "model": cfg["model"],
-                                   "local": cfg["kind"] == "ollama", "ready": llm.available(cfg),
+                                   "local": cfg["local"] or cfg["kind"] == "ollama", "ready": llm.available(cfg),
                                    "cloud3d": cloud["provider"] if cloud and cloud.get("key") else None})
             if u.path == "/api/settings":
                 from .. import settings
@@ -183,8 +183,9 @@ class Handler(BaseHTTPRequestHandler):
                 from .. import llm, settings, textcad
                 cfg = settings.llm_config()
                 if not llm.available(cfg):
-                    raise ValueError(f"{cfg['label']}: " + ("Ollama nu ruleaza pe acest calculator."
-                                                            if cfg["kind"] == "ollama" else "lipseste cheia API."))
+                    raise ValueError(f"{cfg['label']}: " + (
+                        f"serverul local nu raspunde la {cfg['base_url']} (e pornit?)."
+                        if cfg["local"] or cfg["kind"] == "ollama" else "lipseste cheia API."))
                 d = textcad.parse_llm("cutie 60x40x25 cu capac", cfg=cfg)
                 return self._json({"ok": True, "provider": cfg["label"], "model": cfg["model"], "answer": d})
             if u.path == "/api/feedback":

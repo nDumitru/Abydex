@@ -76,7 +76,8 @@ def run() -> tuple[bool, list[str]]:
         cloud = settings.cloud3d_config()
         extra = f"; 3D cloud: {cloud['provider']} ({'cheie setata' if cloud.get('key') else 'fara cheie'})" if cloud else ""
         return (f"{cfg['label']} / {cfg['model']}: "
-                + ("pregatit" if ready else ("nu ruleaza (optional)" if cfg["kind"] == "ollama" else "fara cheie API"))
+                + ("pregatit" if ready else ("serverul local nu ruleaza (optional)" if cfg.get("local") or cfg["kind"] == "ollama"
+                                     else "fara cheie API"))
                 + extra)
 
     checks += [("folder date", data_dir), ("baza de date", database), ("geometrie", mesh_pipeline),

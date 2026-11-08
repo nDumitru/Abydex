@@ -205,3 +205,34 @@ def test_old_database_is_picked_up(home):
     assert m.path.name == "abydex.db"
     assert m.db.execute("SELECT name FROM sqlite_master WHERE name='marker'").fetchone()
     m.close()
+
+
+# ---------------------------------------------------------------- llamafile / llama.cpp (local, no key)
+def test_llamafile_local_server(monkeypatch):
+    settings.update({"llm": {"provider": "llamafile"}})
+    seen = []
+
+    def urlopen(req, timeout=None):
+        seen.append((req.full_url, dict(req.header_items())))
+        if req.full_url.endswith("/models"):
+            return _Resp(b'{"data": [{"id": "local"}]}')
+        body = json.loads(req.data)
+        assert body["response_format"] == {"type": "json_object"}
+        content = '<think>The user wants a box {maybe}.</think>\n{"template": "box", "params": {"length": 70}}'
+        return _Resp(json.dumps({"choices": [{"message": {"content": content}}]}).encode())
+    monkeypatch.setattr(llm.urllib.request, "urlopen", urlopen)
+    d = textcad.understand("o cutie de 7 cm")
+    assert d["template"] == "box" and d["params"]["length"] == 70
+    assert seen[-1][0] == "http://127.0.0.1:8080/v1/chat/completions"
+    assert "Authorization" not in seen[-1][1]               # local server: no key needed
+    assert settings.public_view()["llm_providers"]["llamafile"]["needs_key"] is False
+
+
+def test_llamafile_not_running_uses_rules(monkeypatch):
+    settings.update({"llm": {"provider": "llamafile"}})
+
+    def urlopen(req, timeout=None):
+        raise urllib.error.URLError("connection refused")
+    monkeypatch.setattr(llm.urllib.request, "urlopen", urlopen)
+    d = textcad.understand("cutie 60x40x20")
+    assert d["source"] == "reguli" and d["notes"] == []

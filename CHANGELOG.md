@@ -5,6 +5,15 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-08
+
+### Adaugat
+- Furnizor nou **llamafile / llama.cpp** (local, gratuit, fara cheie): Abydex foloseste direct un model
+  pornit pe `http://127.0.0.1:8080`. Aplicatia verifica singura daca serverul local ruleaza.
+
+### Reparat
+- Raspunsurile modelelor care "gandesc cu voce tare" (Qwen3, DeepSeek-R1: blocuri `<think>`) sunt citite corect.
+
 ## [0.3.0] - 2026-11-08
 
 ### Schimbat
@@ -59,5 +68,6 @@ Prima versiune publica este 0.3.0._
 - Migrari versionate ale bazei de date (cu backup automat) si verificare de versiune noua.
 - Installer Windows (fara Python, fara admin), script de instalare Linux, build automat prin GitHub Actions.
 
-[Unreleased]: https://github.com/nDumitru/abydex/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/nDumitru/abydex/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/nDumitru/abydex/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/nDumitru/abydex/releases/tag/v0.3.0

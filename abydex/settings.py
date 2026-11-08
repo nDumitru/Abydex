@@ -15,7 +15,10 @@ from .catalog import user_dir
 # Model names of other vendors change often: they are only suggestions, editable in the UI.
 LLM_PROVIDERS: dict[str, dict] = {
     "ollama": {"label": "Ollama (local, gratuit, offline)", "kind": "ollama", "model": "qwen2.5-coder:3b",
-               "base_url": "http://127.0.0.1:11434", "env": None, "url": "https://ollama.com"},
+               "base_url": "http://127.0.0.1:11434", "env": None, "url": "https://ollama.com", "local": True},
+    "llamafile": {"label": "llamafile / llama.cpp (local, gratuit, offline)", "kind": "openai", "model": "local",
+                  "base_url": "http://127.0.0.1:8080/v1", "env": None, "local": True,
+                  "url": "https://github.com/Mozilla-Ocho/llamafile"},
     "anthropic": {"label": "Anthropic Claude", "kind": "anthropic", "model": "claude-opus-5-5",
                   "env": "ANTHROPIC_API_KEY", "url": "https://console.anthropic.com/settings/keys"},
     "openai": {"label": "OpenAI", "kind": "openai", "model": "gpt-4.1-mini",
@@ -37,7 +40,7 @@ LLM_PROVIDERS: dict[str, dict] = {
                    "base_url": "https://openrouter.ai/api/v1", "env": "OPENROUTER_API_KEY",
                    "url": "https://openrouter.ai/keys"},
     "custom": {"label": "Alt server compatibil OpenAI (LM Studio, vLLM...)", "kind": "openai", "model": "",
-               "base_url": "http://127.0.0.1:1234/v1", "env": "ABYDEX_CUSTOM_API_KEY", "url": ""},
+               "base_url": "http://127.0.0.1:1234/v1", "env": "ABYDEX_CUSTOM_API_KEY", "url": "", "local": True},
 }
 
 # Cloud text -> 3D for decorative objects (useful on PCs without a strong GPU).
@@ -92,7 +95,7 @@ def llm_config(s: dict | None = None) -> dict:
     s = s or load()
     pid = s["llm"].get("provider") or "ollama"
     info = LLM_PROVIDERS.get(pid, LLM_PROVIDERS["ollama"])
-    return {"provider": pid, "kind": info["kind"], "label": info["label"],
+    return {"provider": pid, "kind": info["kind"], "label": info["label"], "local": bool(info.get("local")),
             "model": s["llm"].get("model") or info["model"],
             "base_url": (s["llm"].get("base_url") or info.get("base_url") or "").rstrip("/"),
             "key": get_key(pid)}
@@ -113,7 +116,8 @@ def public_view() -> dict:
     key_set = {p: bool(get_key(p)) for p in list(LLM_PROVIDERS) + list(CLOUD3D_PROVIDERS)}
     return {"llm": s["llm"], "cloud3d": s["cloud3d"], "key_set": key_set,
             "llm_providers": {k: {kk: v[kk] for kk in ("label", "kind", "model", "url")} | {
-                "base_url": v.get("base_url", ""), "needs_key": v["kind"] != "ollama" and k != "custom"}
+                "base_url": v.get("base_url", ""), "local": bool(v.get("local")),
+                "needs_key": not v.get("local")}
                 for k, v in LLM_PROVIDERS.items()},
             "cloud3d_providers": {k: {kk: v[kk] for kk in ("label", "model", "url")}
                                   for k, v in CLOUD3D_PROVIDERS.items()}}
