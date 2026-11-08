@@ -8,9 +8,9 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 ## [0.3.0] - 2026-11-08
 
 ### Schimbat
-- **Proiectul se numeste acum Abydex** (fost Forja3D), cu sigla noua: un portal din circuite, cu o piramida printata
+- **Proiectul se numeste acum Abydex**, cu sigla noua: un portal din circuite, cu o piramida printata
   strat cu strat. Comanda devine `abydex`, iar repo-ul `nDumitru/abydex`.
-- Update-ul peste Forja3D se face pe loc: installerul Windows inlocuieste versiunea veche si scurtaturile ei,
+- Update-ul peste versiunile anterioare se face pe loc: installerul Windows inlocuieste versiunea veche si scurtaturile ei,
   iar datele (memoria printurilor, profilele, motoarele AI, setarile) se copiaza automat in folderul Abydex.
 
 ### Adaugat
@@ -30,7 +30,7 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 - Model AI local optional (Ollama) pentru piese libere, descrise ca geometrie validata (date, nu cod).
 - Obiecte decorative: text -> imagine (SD-Turbo) -> 3D (TripoSR).
 - Invatare: cererile cu print reusit sunt refolosite si date ca exemple modelului AI.
-- `forja3d doctor` (verificarea instalarii), fisier de log, `forja3d templates`, `forja3d text`.
+- `abydex doctor` (verificarea instalarii), fisier de log, `abydex templates`, `abydex text`.
 
 ### Schimbat
 - Suportul L si carligul se printeaza culcate, pentru rezistenta la indoire.
@@ -58,5 +58,5 @@ Formatul urmeaza [Keep a Changelog](https://keepachangelog.com/ro/1.1.0/), iar v
 
 [Unreleased]: https://github.com/nDumitru/abydex/compare/v0.3.0...HEAD
 [0.3.0]: https://github.com/nDumitru/abydex/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/nDumitru/forja3d/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/nDumitru/forja3d/releases/tag/v0.1.0
+[0.2.0]: https://github.com/nDumitru/abydex/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/nDumitru/abydex/releases/tag/v0.1.0

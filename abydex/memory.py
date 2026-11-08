@@ -68,7 +68,8 @@ class Memory:
             self.path = Path(path)
         else:
             self.path = user_dir() / "abydex.db"
-            old = self.path.with_name("forja3d.db")  # database of Forja3D (the name before v0.3.0)
+            from . import legacy
+            old = self.path.with_name(legacy.OLD_DB)  # database of versions before v0.3.0
             if not self.path.exists() and old.exists():
                 shutil.copy2(old, self.path)
         self.db = sqlite3.connect(self.path)

@@ -2,7 +2,7 @@
 
 # Abydex
 
-> Fost **Forja3D**. Numele vine de la Abydos, orașul antic al Egiptului. Sigla e un portal din circuite, cu o piramidă printată strat cu strat.
+> Numele vine de la Abydos, orașul antic al Egiptului. Sigla e un portal din circuite, cu o piramidă printată strat cu strat.
 
 **Asistent AI local, open-source, pentru printare 3D.** Repară și orientează modelele, recomandă setări în funcție de **material + imprimantă + forma piesei** și **învață din fiecare print** pe care îl evaluezi. Transformă **text sau poze în modele 3D**. Totul merge local, pe calculatorul tău; serviciile AI online (Claude, OpenAI, Gemini, Meshy, Tripo...) sunt opționale, cu cheia ta.
 

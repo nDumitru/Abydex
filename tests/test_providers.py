@@ -181,23 +181,25 @@ def test_organic_text_uses_cloud_when_configured(monkeypatch):
 
 
 # ---------------------------------------------------------------- rename: data of the old app is kept
-def test_old_forja3d_data_is_copied(tmp_path, monkeypatch):
+def test_data_of_old_versions_is_copied(tmp_path, monkeypatch):
+    from abydex import legacy
     monkeypatch.delenv("ABYDEX_HOME")
-    monkeypatch.delenv("FORJA3D_HOME", raising=False)
-    old = tmp_path / "Forja3D"
+    monkeypatch.delenv(legacy.OLD_HOME_ENV, raising=False)
+    old = tmp_path / legacy.OLD_APP
     old.mkdir()
-    (old / "forja3d.db").write_bytes(b"x")
+    (old / legacy.OLD_DB).write_bytes(b"x")
     monkeypatch.setattr(catalog, "_default_dir", lambda app: tmp_path / app)
     new = catalog.user_dir()
-    assert new == tmp_path / "Abydex" and (new / "forja3d.db").exists()
-    assert (old / "forja3d.db").exists()                 # the old folder is left untouched
+    assert new == tmp_path / "Abydex" and (new / legacy.OLD_DB).exists()
+    assert (old / legacy.OLD_DB).exists()                 # the old folder is left untouched
 
 
 def test_old_database_is_picked_up(home):
     import sqlite3
     from abydex.memory import Memory
     d = catalog.user_dir()
-    con = sqlite3.connect(d / "forja3d.db")
+    from abydex import legacy
+    con = sqlite3.connect(d / legacy.OLD_DB)
     con.execute("CREATE TABLE marker(x)"); con.commit(); con.close()
     m = Memory()
     assert m.path.name == "abydex.db"

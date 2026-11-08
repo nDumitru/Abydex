@@ -4,6 +4,9 @@
   #define AppVersion "0.1.0"
 #endif
 ; numeric part only (0.2.0-beta.1 -> 0.2.0), Windows file versions must be numbers
+; name used before v0.3.0 (only to clean up its files on upgrade)
+#define OldApp "Forja3D"
+#define OldPkg "forja3d"
 #ifndef NumVersion
   #define NumVersion "0.1.0"
 #endif
@@ -31,7 +34,7 @@ LicenseFile=..\..\LICENSE
 UninstallDisplayName=Abydex
 SetupIconFile=..\..\abydex\webui\static\abydex.ico
 UninstallDisplayIcon={app}\abydex.ico
-; same AppId as Forja3D (the old name): installing Abydex upgrades it in place
+; same AppId as the versions before v0.3.0: installing Abydex upgrades them in place
 
 [Languages]
 ; Romanian is not bundled with Inno Setup (unofficial translation) - English for now
@@ -41,12 +44,12 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [InstallDelete]
-; leftovers of the old name (Forja3D, before v0.3.0)
-Type: files; Name: "{app}\Forja3D.cmd"
-Type: filesandordirs; Name: "{app}\python\Lib\site-packages\forja3d"
-Type: filesandordirs; Name: "{app}\python\Lib\site-packages\forja3d-*.dist-info"
-Type: filesandordirs; Name: "{autoprograms}\Forja3D"
-Type: files; Name: "{autodesktop}\Forja3D.lnk"
+; leftovers of the versions before v0.3.0 (old app name, see abydex/legacy.py)
+Type: files; Name: "{app}\{#OldApp}.cmd"
+Type: filesandordirs; Name: "{app}\python\Lib\site-packages\{#OldPkg}"
+Type: filesandordirs; Name: "{app}\python\Lib\site-packages\{#OldPkg}-*.dist-info"
+Type: filesandordirs; Name: "{autoprograms}\{#OldApp}"
+Type: files; Name: "{autodesktop}\{#OldApp}.lnk"
 
 [Files]
 Source: "..\..\build\app\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
